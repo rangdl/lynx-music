@@ -2,9 +2,9 @@
  * 按当前主题（JS 状态，见 useTheme.ts）渲染单个 SVG、给具体色值。
  * 不用 CSS var()：x-svg 的 <img> 化渲染解析不到页面变量；
  * 不用 @media：Web 预览端构建期被剥离、后台线程无 matchMedia（实测）。 */
-import { IconSvg } from '../icons.js';
-import type { IconDef } from '../icons.js';
-import { useTheme, resolveColor } from '../useTheme.js';
+import { IconSvg } from '../icons/icons.js';
+import type { IconDef } from '../icons/icons.js';
+import { useTheme, resolveColor } from '../theme/useTheme.js';
 
 export interface IconProps {
   def: IconDef;

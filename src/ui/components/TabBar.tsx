@@ -1,6 +1,6 @@
 /* TabBar：悬浮胶囊底部导航 */
 import { Icon } from './Icon.js';
-import { IconMusic, IconGear } from '../icons.js';
+import { IconMusic, IconGear } from '../icons/icons.js';
 
 export type TabName = 'library' | 'settings';
 

@@ -1,6 +1,6 @@
 /* MiniPlayer：悬浮迷你播放条（两 Tab 共用） */
 import { Icon } from './Icon.js';
-import { IconNote, IconPlay, IconPause, IconNext } from '../icons.js';
+import { IconNote, IconPlay, IconPause, IconNext } from '../icons/icons.js';
 
 export interface MiniPlayerProps {
   title: string;

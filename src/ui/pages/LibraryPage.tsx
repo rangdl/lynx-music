@@ -3,9 +3,9 @@ import { Icon } from '../components/Icon.js';
 import { CollapsiblePage } from '../components/CollapsiblePage.js';
 import {
   IconSearch, IconDisc, IconMic, IconNote, IconPlaylist, IconBell, IconPlay,
-} from '../icons.js';
-import { CATEGORIES, PLAYLIST } from '../data/settings.js';
-import type { Song } from '../data/settings.js';
+} from '../icons/icons.js';
+import { CATEGORIES, PLAYLIST } from '../../data/settings.js';
+import type { Song } from '../../data/settings.js';
 
 export interface LibraryPageProps {
   safeTop: number;

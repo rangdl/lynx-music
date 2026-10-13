@@ -1,14 +1,14 @@
 /* App：组合层 —— 只负责状态、Tab 切换与页面拼装，UI 细节在各组件/页面里 */
 import { useCallback, useState } from '@lynx-js/react';
 import './App.css';
-import { NavBar } from './components/NavBar.js';
-import { TabBar } from './components/TabBar.js';
-import { MiniPlayer } from './components/MiniPlayer.js';
-import { LibraryPage } from './pages/LibraryPage.js';
-import { SettingsPage } from './pages/SettingsPage.js';
+import { NavBar } from './ui/components/NavBar.js';
+import { TabBar } from './ui/components/TabBar.js';
+import { MiniPlayer } from './ui/components/MiniPlayer.js';
+import { LibraryPage } from './ui/pages/LibraryPage.js';
+import { SettingsPage } from './ui/pages/SettingsPage.js';
 import { initialToggles, PLAYLIST } from './data/settings.js';
-import { useTheme } from './useTheme.js';
-import type { TabName } from './components/TabBar.js';
+import { useTheme } from './ui/theme/useTheme.js';
+import type { TabName } from './ui/components/TabBar.js';
 
 /** 安全区回退值：真机由宿主 NativeModules.SafeArea 注入；开源版无 getSystemInfoSync，不可依赖 */
 const DEFAULT_SAFE_TOP = 47;

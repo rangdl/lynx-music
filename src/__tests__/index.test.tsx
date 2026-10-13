@@ -8,8 +8,9 @@ import { expect, test } from '@rstest/core';
 import { App } from '../App';
 
 test('App', async () => {
-  const { findByText } = render(<App />);
-  const element = await findByText('Tap the logo and have fun!');
+  const { findAllByText } = render(<App />);
+  // 「音乐库」出现在 吸顶栏/大标题/Tab 三处,渲染成功即认为挂载正常
+  const elements = await findAllByText('音乐库');
 
-  expect(element).toBeInTheDocument();
+  expect(elements.length).toBeGreaterThanOrEqual(3);
 });

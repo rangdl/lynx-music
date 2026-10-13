@@ -1,8 +1,8 @@
 /* 设置页：分组条目列表 */
 import { SwitchRow } from '../components/SwitchRow.js';
 import { CollapsiblePage } from '../components/CollapsiblePage.js';
-import { SETTING_GROUPS } from '../data/settings.js';
-import { useTheme, setTheme } from '../useTheme.js';
+import { SETTING_GROUPS } from '../../data/settings.js';
+import { useTheme, setTheme } from '../theme/useTheme.js';
 
 export interface SettingsPageProps {
   safeTop: number;

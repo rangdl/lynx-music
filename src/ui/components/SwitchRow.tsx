@@ -3,7 +3,7 @@
  * 注意：不要在父行绑 bindtap，否则与 Switch 的 tap 冒泡叠加导致状态切换两次。 */
 import { Switch, SwitchThumb, SwitchTrack } from '@lynx-js/lynx-ui';
 import { Icon } from './Icon.js';
-import type { IconDef } from '../icons.js';
+import type { IconDef } from '../icons/icons.js';
 
 export type RowControl =
   | { type: 'toggle'; on: boolean; onToggle: () => void }

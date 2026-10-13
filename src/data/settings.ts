@@ -4,9 +4,9 @@ import {
   IconImport, IconUserSplit, IconCopy, IconBolt, IconClockSync, IconStar,
   IconSparkle, IconQuote, IconGrid, IconGlobe, IconBackup, IconUpload,
   IconDolby, IconBitPerfect, IconInfo,
-} from '../icons.js';
-import type { IconDef } from '../icons.js';
-import type { RowControl } from '../components/SwitchRow.js';
+} from '../ui/icons/icons.js';
+import type { IconDef } from '../ui/icons/icons.js';
+import type { RowControl } from '../ui/components/SwitchRow.js';
 
 export interface Song {
   id: number;
