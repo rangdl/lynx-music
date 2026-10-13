@@ -1,3 +1,38 @@
+/* ===== 主题变量（浅色默认，深色由系统 @media 切换） ===== */
+page {
+  --bg-page: #f2f2f7;
+  --bg-nav: #f9f9f9;
+  --bg-card: #ffffff;
+  --bg-fill: #e3e3e8;
+  --bg-fill-soft: #e8e8ec;
+  --bg-float: rgba(245, 245, 247, 0.96);
+  --text-primary: #1c1c1e;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #a0a0a8;
+  --text-quaternary: #c7c7cc;
+  --separator: #f0f0f2;
+  --accent: #e5484d;
+  --success: #34c759;
+}
+
+@media (prefers-color-scheme: dark) {
+  page {
+    --bg-page: #000000;
+    --bg-nav: #1c1c1e;
+    --bg-card: #1c1c1e;
+    --bg-fill: #2c2c2e;
+    --bg-fill-soft: #333338;
+    --bg-float: rgba(28, 28, 30, 0.96);
+    --text-primary: #f2f2f7;
+    --text-secondary: #98989e;
+    --text-tertiary: #7c7c82;
+    --text-quaternary: #48484c;
+    --separator: #2c2c2e;
+    --accent: #ff5a5f;
+    --success: #34c759;
+  }
+}
+
 
 /* lx 音源 demo 页面样式 —— iOS 浅色风格 */
 .Page {
@@ -472,38 +507,4 @@
   .IconDark {
     display: flex;
   }
-}
-
-/* ===== 主题变量：由 JS 主题状态驱动（App 根节点挂 .theme-light/.theme-dark，
- * 见 useTheme.ts。不用 @media —— Web 预览端 Lynx CSS 管线会丢弃 media query） ===== */
-.theme-light {
-  --bg-page: #f2f2f7;
-  --bg-nav: #f9f9f9;
-  --bg-card: #ffffff;
-  --bg-fill: #e3e3e8;       /* 搜索框、开关关态 */
-  --bg-fill-soft: #e8e8ec;  /* tab 选中、唱片占位 */
-  --bg-float: rgba(245, 245, 247, 0.96);
-  --text-primary: #1c1c1e;
-  --text-secondary: #8e8e93;
-  --text-tertiary: #a0a0a8;
-  --text-quaternary: #c7c7cc;
-  --separator: #f0f0f2;
-  --accent: #e5484d;
-  --success: #34c759;
-}
-
-.theme-dark {
-  --bg-page: #000000;
-  --bg-nav: #1c1c1e;
-  --bg-card: #1c1c1e;
-  --bg-fill: #2c2c2e;
-  --bg-fill-soft: #333338;
-  --bg-float: rgba(28, 28, 30, 0.96);
-  --text-primary: #f2f2f7;
-  --text-secondary: #98989e;
-  --text-tertiary: #7c7c82;
-  --text-quaternary: #48484c;
-  --separator: #2c2c2e;
-  --accent: #ff5a5f;
-  --success: #34c759;
 }
