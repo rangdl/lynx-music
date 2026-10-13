@@ -7,6 +7,7 @@ import { MiniPlayer } from './components/MiniPlayer.js';
 import { LibraryPage } from './pages/LibraryPage.js';
 import { SettingsPage } from './pages/SettingsPage.js';
 import { initialToggles, PLAYLIST } from './data/settings.js';
+import { useTheme } from './useTheme.js';
 import type { TabName } from './components/TabBar.js';
 
 /** 安全区回退值：真机由宿主 NativeModules.SafeArea 注入；开源版无 getSystemInfoSync，不可依赖 */
@@ -25,7 +26,9 @@ function readSafeTop(): number {
   }
 }
 
+
 export function App() {
+  const theme = useTheme();
   const [tab, setTab] = useState<TabName>('library');
   const [navOpacity, setNavOpacity] = useState(0);
   const [currentId, setCurrentId] = useState(1);
@@ -88,7 +91,7 @@ export function App() {
   }, [retrying]);
 
   return (
-    <view className="Page">
+    <view className={theme === 'dark' ? 'Page theme-dark' : 'Page theme-light'}>
       <NavBar
         title={tab === 'library' ? '音乐库' : '设置'}
         safeTop={safeTop}

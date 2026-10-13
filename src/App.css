@@ -1,38 +1,3 @@
-/* ===== 主题变量（浅色默认，深色由系统 @media 切换） ===== */
-page {
-  --bg-page: #f2f2f7;
-  --bg-nav: #f9f9f9;
-  --bg-card: #ffffff;
-  --bg-fill: #e3e3e8;
-  --bg-fill-soft: #e8e8ec;
-  --bg-float: rgba(245, 245, 247, 0.96);
-  --text-primary: #1c1c1e;
-  --text-secondary: #8e8e93;
-  --text-tertiary: #a0a0a8;
-  --text-quaternary: #c7c7cc;
-  --separator: #f0f0f2;
-  --accent: #e5484d;
-  --success: #34c759;
-}
-
-@media (prefers-color-scheme: dark) {
-  page {
-    --bg-page: #000000;
-    --bg-nav: #1c1c1e;
-    --bg-card: #1c1c1e;
-    --bg-fill: #2c2c2e;
-    --bg-fill-soft: #333338;
-    --bg-float: rgba(28, 28, 30, 0.96);
-    --text-primary: #f2f2f7;
-    --text-secondary: #98989e;
-    --text-tertiary: #7c7c82;
-    --text-quaternary: #48484c;
-    --separator: #2c2c2e;
-    --accent: #ff5a5f;
-    --success: #34c759;
-  }
-}
-
 
 /* lx 音源 demo 页面样式 —— iOS 浅色风格 */
 .Page {
@@ -507,4 +472,53 @@ page {
   .IconDark {
     display: flex;
   }
+}
+
+/* ===== 主题变量：JS 状态驱动（App 根节点挂 .theme-light/.theme-dark，
+ * 见 useTheme.ts。@media 在 Web 预览端被构建期剥离、后台线程无 matchMedia，
+ * 故不使用 media 方案） ===== */
+.theme-light {
+  --bg-page: #f2f2f7;
+  --bg-nav: #f9f9f9;
+  --bg-card: #ffffff;
+  --bg-fill: #e3e3e8;
+  --bg-fill-soft: #e8e8ec;
+  --bg-float: rgba(245, 245, 247, 0.96);
+  --text-primary: #1c1c1e;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #a0a0a8;
+  --text-quaternary: #c7c7cc;
+  --separator: #f0f0f2;
+  --accent: #e5484d;
+  --success: #34c759;
+}
+
+.theme-dark {
+  --bg-page: #000000;
+  --bg-nav: #1c1c1e;
+  --bg-card: #1c1c1e;
+  --bg-fill: #2c2c2e;
+  --bg-fill-soft: #333338;
+  --bg-float: rgba(28, 28, 30, 0.96);
+  --text-primary: #f2f2f7;
+  --text-secondary: #98989e;
+  --text-tertiary: #7c7c82;
+  --text-quaternary: #48484c;
+  --separator: #2c2c2e;
+  --accent: #ff5a5f;
+  --success: #34c759;
+}
+
+/* 开发期主题切换条 */
+.ThemeToggle {
+  margin: 0 16px 8px 16px;
+  background-color: var(--bg-card);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.ThemeToggleText {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
 }
