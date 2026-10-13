@@ -615,3 +615,23 @@
   font-size: 13px;
   padding: 16px 12px;
 }
+
+/* ===== URL 导入行 ===== */
+.SourceUrlInput {
+  flex: 1;
+  height: 40px;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+
+.SourceResultRow {
+  padding: 8px 12px 0 12px;
+}
+
+.SourceOk {
+  color: var(--success);
+  font-size: 12px;
+}

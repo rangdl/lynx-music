@@ -100,11 +100,19 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
 
   fetch(url, fetchOpts as Parameters<typeof fetch>[1])
     .then(async (r) => {
-      const text = await r.text();
-      let body: unknown = text;
-      try { body = JSON.parse(text); } catch { /* 保留纯文本 */ }
+      // 二进制安全:先拿 ArrayBuffer。Content-Type 为 JSON 才 parse;
+      // 其余按字节透传(Uint8Array),文本由调用方自行 decode——
+      // 实测 text() 会把 zip 等二进制做 UTF-8 解码损坏数据。
+      const contentType = r.headers.get('content-type') ?? '';
       const headers: Record<string, string> = {};
       r.headers.forEach((v, k) => { headers[k] = v; });
+      let body: unknown;
+      if (contentType.includes('json')) {
+        const text = await r.text();
+        try { body = JSON.parse(text); } catch { body = text; }
+      } else {
+        body = new Uint8Array(await r.arrayBuffer());
+      }
       cb(null, { statusCode: r.status, headers, body });
     })
     .catch((e: unknown) => {

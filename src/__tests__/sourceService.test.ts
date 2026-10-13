@@ -21,7 +21,7 @@ function fakeRequestFor(updateHost: RegExp, urlBody: string) {
   };
 }
 
-describe('SourceService 集成(假脚本)', () => {
+describe.sequential('SourceService 集成(假脚本)', () => {
   beforeEach(() => { localStorage.clear(); });
 
   test('install → listScripts → resolve 全链路', async () => {
@@ -88,8 +88,8 @@ import type { RequestFn } from '../runtime/api/lxApi.js';
 
 class SourceServiceWithNet extends SourceService {
   constructor(request: RequestFn) {
-    super();
-    // 覆盖私有 bridge:测试专用
+    super((url, cb) => request(url, {}, cb));
+    // 覆盖私有 bridge:测试专用(同网络 + 真实 md5)
     (this as unknown as { bridge: SourceBridge }).bridge = new SourceBridge({
       request,
       crypto: { md5: (s: string, t?: string) => createHash('md5').update(s).digest((t ?? 'hex') as 'hex') },
@@ -97,11 +97,11 @@ class SourceServiceWithNet extends SourceService {
   }
 }
 
-describe('SourceService 集成(真实念心脚本,离线 mock)', () => {
-  beforeEach(() => { localStorage.clear(); });
+describe.sequential('SourceService 集成(真实念心脚本,离线 mock)', () => {
+  beforeEach(async () => { await new SourceServiceWithNet((u, o, cb) => cb(null, null)).clearAll(); });
 
   test('真实脚本可安装且解析出元数据', async () => {
-    const code = readFileSync('/data/workspace/lynx/test-sources/nianxin.js', 'utf8');
+    const code = readFileSync('/data/workspace/lynx/test-fixtures/nianxin.js', 'utf8');
     // 念心 init:检查更新 URL 返回"已是最新",随后 send(inited) 由脚本自行构造
     const svc = new SourceServiceWithNet((url, _o, cb) => {
       setTimeout(() => cb(null, { statusCode: 200, headers: {}, body: { code: 200, data: { version: '0', update: { version: '0' } } } }), 5);
@@ -110,5 +110,48 @@ describe('SourceService 集成(真实念心脚本,离线 mock)', () => {
     expect(entry.name).toBe('念心音源');
     expect(entry.version).toBe('1.0.2');
     expect(Object.keys(entry.sources).sort()).toEqual(['kg', 'kw', 'mg', 'tx', 'wy']);
+  });
+});
+
+describe.sequential('installFromUrl(URL 导入)', () => {
+  beforeEach(async () => { await new SourceServiceWithNet((u, o, cb) => cb(null, null)).clearAll(); });
+
+  function netWithBytes(body: Uint8Array | string) {
+    return (url: string, _o: Record<string, unknown>, cb: (e: Error | null, r: { statusCode: number; headers: Record<string, string>; body: unknown } | null) => void) => {
+      setTimeout(() => cb(null, { statusCode: 200, headers: {}, body }), 5);
+    };
+  }
+
+  test('单脚本 URL:下载文本并安装', async () => {
+    const script = `
+      let { EVENT_NAMES, on, send } = globalThis.lx;
+      on(EVENT_NAMES.request, () => 'https://u.test/a.mp3');
+      send(EVENT_NAMES.inited, { status: true, sources: { kw: { type: 'music', name: 'kw', actions: ['musicUrl'], qualitys: ['128k'] } } });
+    `;
+    const svc = new SourceServiceWithNet(netWithBytes(script));
+    const { installed, errors } = await svc.installFromUrl('https://cdn.test/source.js');
+    expect(errors).toHaveLength(0);
+    expect(installed).toHaveLength(1);
+    expect((await svc.listScripts())).toHaveLength(1);
+  });
+
+  test('zip URL:解包安装全部 .js,跳过其它文件', async () => {
+    const { zipSync, strToU8 } = await import('fflate');
+    const mk = (name: string) => `/**\n * @name ${name}\n * @version 1\n */\nlet { EVENT_NAMES, on, send } = globalThis.lx;\non(EVENT_NAMES.request, () => 'https://z.test/a.mp3');\nsend(EVENT_NAMES.inited, { status: true, sources: { kw: { type: 'music', name: 'kw', actions: ['musicUrl'], qualitys: ['128k'] } } });`;
+    const zip = zipSync({
+      'pkg/a.js': strToU8(mk('压缩音源A')),
+      'pkg/b.js': strToU8(mk('压缩音源B')),
+      'pkg/readme.md': strToU8('not js'),
+    });
+    const svc = new SourceServiceWithNet(netWithBytes(new Uint8Array(zip)));
+    const { installed, errors } = await svc.installFromUrl('https://cdn.test/pkg.zip');
+    expect(errors).toHaveLength(0);
+    expect(installed.map((s) => s.name).sort()).toEqual(['压缩音源A', '压缩音源B']);
+    expect((await svc.listScripts())).toHaveLength(2);
+  });
+
+  test('坏 zip 报可读错误', async () => {
+    const svc = new SourceServiceWithNet(netWithBytes(new Uint8Array([0x50, 0x4b, 3, 4, 1, 2, 3, 4, 5, 6])));
+    await expect(svc.installFromUrl('https://cdn.test/bad.zip')).rejects.toThrow('解压失败');
   });
 });

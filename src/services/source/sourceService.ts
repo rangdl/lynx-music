@@ -8,6 +8,7 @@
 
 import { SourceBridge, ScriptError } from '../../runtime/bridge.js';
 import { storage, httpRequest } from '../../platform/index.js';
+import { unzipSync } from 'fflate';
 import type { LxRequestPayload, LxSourceInfo, ScriptEntry, ResolveErrorCode, UrlResult } from '../../runtime/types.js';
 import { ResolveError } from '../../runtime/types.js';
 
@@ -37,9 +38,16 @@ function makeId(meta: { name: string; version: string }, code: string): string {
 
 export class SourceService {
   /** 宿主 crypto 注入口(services 层组装时传入;Web 可传 SubtleCrypto 包装) */
-  private bridge = new SourceBridge({
-    request: (url, opts, cb) => httpRequest(url, opts, cb),
-  });
+  private bridge: SourceBridge;
+  /** URL 导入下载出口(默认 platform/http;测试注入假网络) */
+  private download: (url: string, cb: (err: Error | null, resp: { statusCode: number; headers: Record<string, string>; body: unknown } | null) => void) => void;
+
+  constructor(download?: typeof this.download) {
+    this.download = download ?? ((url, cb) => httpRequest(url, {}, cb, 30000));
+    this.bridge = new SourceBridge({
+      request: (url, opts, cb) => httpRequest(url, opts, cb),
+    });
+  }
 
   private registry: ScriptEntry[] | null = null;
   /** 负缓存:key → 到期时间戳(ms) */
@@ -59,6 +67,13 @@ export class SourceService {
 
   private async persist(): Promise<void> {
     await storage.set(REGISTRY_KEY, JSON.stringify(this.registry ?? []));
+  }
+
+  /** 清空注册表(设置页「重置音源库」/测试隔离用) */
+  async clearAll(): Promise<void> {
+    this.bridge.unloadAll();
+    this.registry = [];
+    await storage.remove(REGISTRY_KEY);
   }
 
   /** 安装脚本:解析元数据 → 加载健康检查 → 入注册表。
@@ -81,6 +96,70 @@ export class SourceService {
     this.registry!.push(entry);
     await this.persist();
     return entry;
+  }
+
+  /** URL 导入:下载后按内容分流——zip 解包装全部 .js,否则按单脚本安装。
+   *  返回安装成功的条目列表(部分成功不回滚:逐个装,失败进 errors)。 */
+  async installFromUrl(url: string): Promise<{ installed: ScriptEntry[]; errors: string[] }> {
+    'background only';
+    const bytes = await new Promise<Uint8Array>((resolve, reject) => {
+      this.download(url, (err, resp) => {
+        if (err) return reject(new Error(`下载失败:${err.message}`));
+        if (!resp || resp.statusCode >= 400) return reject(new Error(`下载失败:HTTP ${resp?.statusCode ?? '?'}`));
+        const b = resp.body;
+        // http 封装对非 JSON 返回纯文本字符串;zip 是二进制,JSON.parse 必然失败 → 文本路径
+        if (typeof b === 'string') {
+          const arr = new Uint8Array(b.length);
+          for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i) & 0xff;
+          resolve(arr);
+        } else if (b instanceof Uint8Array) {
+          resolve(b);
+        } else if (b && Array.isArray((b as { data?: number[] }).data)) {
+          resolve(new Uint8Array((b as { data: number[] }).data));
+        } else {
+          reject(new Error('下载内容无法识别'));
+        }
+      });
+    });
+
+    // zip 魔数 PK\x03\x04
+    if (bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b) {
+      return this.installFromZip(bytes);
+    }
+    const text = new TextDecoder('utf-8').decode(bytes);
+    const entry = await this.install(text);
+    return { installed: [entry], errors: [] };
+  }
+
+  /** 压缩包安装:解包,取全部 .js(按路径排序保证确定性),逐个走 install。
+   *  实测 lx 社区 zip 结构:脚本多在子目录里,故按路径前缀分组不必要,直接平铺收 js。 */
+  async installFromZip(bytes: Uint8Array): Promise<{ installed: ScriptEntry[]; errors: string[] }> {
+    'background only';
+    let files: Record<string, Uint8Array>;
+    try {
+      files = unzipSync(bytes);
+    } catch (e) {
+      throw new Error(`解压失败:${e instanceof Error ? e.message : '压缩包损坏'}`);
+    }
+    const jsPaths = Object.keys(files)
+      .filter((p) => p.toLowerCase().endsWith('.js') && (files[p]?.length ?? 0) > 0)
+      .sort();
+    if (!jsPaths.length) throw new Error('压缩包内没有 .js 脚本');
+
+    const installed: ScriptEntry[] = [];
+    const errors: string[] = [];
+    for (const p of jsPaths) {
+      const text = new TextDecoder('utf-8').decode(files[p]);
+      try {
+        installed.push(await this.install(text));
+      } catch (e) {
+        // 已安装的脚本跳过不算错
+        const msg = e instanceof Error ? e.message : String(e);
+        if (!msg.includes('脚本已安装')) errors.push(`${p}: ${msg}`);
+      }
+    }
+    if (!installed.length && errors.length) throw new Error(errors.join('; ').slice(0, 300));
+    return { installed, errors };
   }
 
   async setEnabled(id: string, enabled: boolean): Promise<void> {
