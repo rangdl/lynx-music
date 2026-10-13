@@ -42,7 +42,7 @@ These were confirmed by measurement or by docs. Do not re-litigate them in code:
 5. **Text only inside `<text>`**; scrolling only via `<scroll-view>` / `<list>`; every element is block-ish (`display: linear` default differences from web apply).
 6. **`'background only';`-adjacent syntax limits**: background thread is ES2015, main thread ES2019 — the build transpiles; just never hand-write newer syntax inside string-embedded code.
 7. **Theming**: theme is a **JS single source of truth** (`useTheme`), applied via `.theme-light/.theme-dark` classes + CSS variables. Do NOT use `@media (prefers-color-scheme)` (stripped by the web build), CSS `var()` inside SVG attributes (x-svg renders via `<img>`, can't see page variables), or `matchMedia` (undefined on the background thread). Icon colors resolve to concrete values via `Icon` + `resolveColor`.
-8. **CSS**: `box-sizing: border-box` always; no margin collapsing; CSS inheritance is opt-in. Relative/z-index quirk: a parent whose children use `z-index` must itself set `z-index: 0` or higher.
+8. **CSS**: `box-sizing: border-box` always; no margin collapsing; CSS inheritance is opt-in. Relative/z-index quirk: a parent whose children use `z-index` must itself set `z-index: 0` or higher. **Web build crash trap (measured 2026-10): adding a brand-new CSS custom property name to `.theme-*` blocks crashes the web build** (`web-core` `encodeCSS` throws "Cannot read properties of undefined (reading 'toArray')") — the lynx build still succeeds, so check the web target. New theme tokens must be added to the JS `TONES` map in `ui/theme/useTheme.ts` and referenced there, not invented purely in CSS.
 9. **Fetch**: no `TextEncoder/TextDecoder` in PrimJS — use the shared helper in `platform/http.ts`; never hand-roll encoding.
 10. **High-frequency UI** (drag, progress-follow): use `main-thread:` events + `MainThread.Element.setStyleProperty`, not background-thread state at high frequency.
 11. **Event handlers**: pass function references, not inline arrow functions (`bindtap={handleTap}` not `bindtap={() => ...}`); prefer `data-*`/`dataset` over closures for passing data; use `catchtap` only to stop propagation.
@@ -79,3 +79,9 @@ These were confirmed by measurement or by docs. Do not re-litigate them in code:
 1. `npm run test` and `npm run build` both pass.
 2. New platform/host-dependent code has a Web fallback path.
 3. Comments record any measured Lynx behavior you discovered (so future agents don't re-derive it).
+
+## Known Platform Limitations (measured)
+
+- **Web preview has no audio playback path**: the ReactLynx app logic runs in a web worker (no `document`) on the web target, so `platform/audio.ts`'s `<audio>` fallback cannot create elements from the background context — playback correctly degrades to an error message ("当前环境不支持 Web 音频播放"). Real devices use `NativeModules.Audio` (main-thread native). A dedicated host bridge will be needed if browser playback is ever required.
+- **`x-input` collapses newlines**: single-line `<input>` turns pasted multi-line text's `\n` into spaces — always use `<textarea>` for script/code input (this broke `@name` header parsing during script install).
+- **`localStorage` is unavailable in the web-preview sandbox iframe** (`about:srcdoc`, opaque origin): `platform/storage.ts` keeps an in-memory fallback map; persistence across reloads works in real browsers and on device.

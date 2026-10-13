@@ -65,6 +65,16 @@ export const audio   = capabilities.audio ? nativeAudio : webAudio;
 - 安全区、主题跟随(宿主 `setTheme` → `globalProps.appTheme` + `GlobalEventEmitter` 通知)在这里完成,当前 `App.tsx` 里的 `readSafeTop()` 迁入 `platform/system.ts`。
 - fetch 注意:PrimJS 无 `TextEncoder/TextDecoder`,统一走 `TextCodecHelper` 封装在 `http.ts` 内,禁止散落使用。
 
+## 2.1 存储决策:KV 现做,SQLite 延后
+
+Lynx 引擎**没有内置 storage API**(官方 storage 文档为空),持久化属于宿主能力,官方唯一示例是 Native Module 封装平台 KV(iOS NSUserDefaults / Android SharedPreferences / HarmonyOS Preferences)。SQLite 同样只能走自写 Native Module(各平台 SQLite 封装)或 Android WASM 方案(sql.js,不推荐做主存储)。
+
+因此双轨:
+
+- **现在**:`platform/storage.ts` 只做 KV 接口。真机走 `NativeModules` KV 模块(照官方示例),Web 走 localStorage。服务对象:设置项、音源脚本注册表、播放断点。
+- **触发条件后再上 SQLite**(`platform/db.ts`,预留位置):音乐库超过 ~1 万条、或需要多条件筛选/全文搜索时,实现 `NativeModules.LxDbModule`(iOS libsqlite3 / Android SQLiteDatabase / HarmonyOS relationalStore)。
+- 注意:SharedPreferences/NSUserDefaults 存大 JSON 有性能问题,音乐库全量塞 KV 不是长久之计——这是预留 `db.ts` 的原因。
+
 ## 3. lx 音源运行时(runtime/)—— 本项目核心
 
 lx 音源脚本是一个**调用 `globalThis.lx` API、导出 `musicSources` 对象**的用户 JS 字符串。它不可信、可能死循环、可能打大量请求,因此:

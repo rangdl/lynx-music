@@ -522,3 +522,96 @@
   font-size: 14px;
   font-weight: 500;
 }
+
+/* ===== 音源管理页 ===== */
+.SourceImport {
+  display: flex;
+  flex-direction: row;
+  padding: 12px;
+  align-items: flex-start;
+}
+
+.SourceInput {
+  flex: 1;
+  min-height: 72px;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.SourceInputPlaceholder {
+  color: var(--text-tertiary);
+}
+
+.SourceInstallBtn {
+  margin-left: 10px;
+  background-color: var(--accent);
+  border-radius: 10px;
+  padding: 8px 16px;
+}
+
+.SourceInstallBtnText {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.SourceError {
+  color: var(--accent);
+  font-size: 12px;
+  padding: 8px 12px 0 12px;
+}
+
+.SourceHint {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  padding: 8px 12px 12px 12px;
+}
+
+.SourceRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px;
+}
+
+.SourceInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.SourceName {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.SourceMeta {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.SourceRowBtn {
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-left: 8px;
+}
+
+.SourceRowBtnText {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.SourceRowBtnDanger {
+  background-color: var(--bg-card);
+}
+
+.SourceEmpty {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: 16px 12px;
+}

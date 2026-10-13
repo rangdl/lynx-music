@@ -11,7 +11,8 @@
   "dependencies": {
     "@lynx-js/lynx-ui": "^3.140.0",
     "@lynx-js/react": "^0.127.0",
-    "lucide-static": "^1.55.0"
+    "lucide-static": "^1.55.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@lynx-js/config-rsbuild-plugin": "^0.2.4",

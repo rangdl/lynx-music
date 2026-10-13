@@ -1,25 +1,31 @@
-/* 音乐库页：搜索框 + 分类入口 + 连接状态/歌曲列表 */
+/* 音乐库页：搜索框 + 分类入口 + 歌曲列表 */
 import { Icon } from '../components/Icon.js';
 import { CollapsiblePage } from '../components/CollapsiblePage.js';
 import {
-  IconSearch, IconDisc, IconMic, IconNote, IconPlaylist, IconBell, IconPlay,
+  IconSearch, IconDisc, IconMic, IconNote, IconPlaylist, IconPlay,
 } from '../icons/icons.js';
 import { CATEGORIES, PLAYLIST } from '../../data/settings.js';
 import type { Song } from '../../data/settings.js';
+import { usePlayerStore } from '../../state/playerStore.js';
 
 export interface LibraryPageProps {
   safeTop: number;
   onOffsetChange: (e: { offset: number; height: number }) => void;
-  serverOk: boolean;
-  retrying: boolean;
-  onRetry: () => void;
-  currentId: number;
+  currentId: number | null;
   playing: boolean;
   onTapSong: (id: number) => void;
 }
 
 export function LibraryPage(props: LibraryPageProps) {
-  const { safeTop, onOffsetChange, serverOk, retrying, onRetry, currentId, playing, onTapSong } = props;
+  const { safeTop, onOffsetChange, currentId, playing, onTapSong } = props;
+  const error = usePlayerStore((s) => s.error);
+  const clearError = usePlayerStore((s) => s.clearError);
+
+  function handleDismissError() {
+    'background only';
+    clearError();
+  }
+
   return (
     <CollapsiblePage title="音乐库" safeTop={safeTop} onOffsetChange={onOffsetChange}>
       {/* 搜索框 */}
@@ -38,13 +44,12 @@ export function LibraryPage(props: LibraryPageProps) {
         ))}
       </view>
 
-      {/* 服务器连接状态 */}
-      {!serverOk ? (
+      {/* 取链错误提示(一次性) */}
+      {error ? (
         <view className="ErrBar">
-          <view className="ErrIcon"><Icon def={IconBell} size={18} tone="secondary" /></view>
-          <text className="ErrMsg">无法连接音源服务 lx-runner</text>
-          <view className="RetryBtn" bindtap={onRetry}>
-            <text className="RetryIcon">{retrying ? '…' : '重试'}</text>
+          <text className="ErrMsg">{error}</text>
+          <view className="RetryBtn" bindtap={handleDismissError}>
+            <text className="RetryIcon">知道了</text>
           </view>
         </view>
       ) : (
@@ -55,8 +60,13 @@ export function LibraryPage(props: LibraryPageProps) {
 }
 
 function SongList({ currentId, playing, onTapSong }: {
-  currentId: number; playing: boolean; onTapSong: (id: number) => void;
+  currentId: number | null; playing: boolean; onTapSong: (id: number) => void;
 }) {
+  function handleTap(e: { currentTarget: { dataset: Record<string, string> } }) {
+    'background only';
+    onTapSong(Number(e.currentTarget.dataset.id));
+  }
+
   return (
     <view className="Section">
       <text className="SectionTitle">最近添加</text>
@@ -64,8 +74,9 @@ function SongList({ currentId, playing, onTapSong }: {
         {PLAYLIST.map((song: Song) => (
           <view
             key={song.id}
+            data-id={song.id}
             className={song.id === currentId ? 'Song active' : 'Song'}
-            bindtap={() => onTapSong(song.id)}
+            bindtap={handleTap}
           >
             {song.id === currentId && playing ? (
               <view className="SongIndex"><Icon def={IconPlay} size={12} tone="accent" /></view>
