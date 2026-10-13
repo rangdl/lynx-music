@@ -1,0 +1,509 @@
+
+/* lx 音源 demo 页面样式 —— iOS 浅色风格 */
+.Page {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+  /* 官方要求：子元素用 z-index 时父级须设 z-index: 0（absolute 场景） */
+  z-index: 0;
+}
+
+.Scroll {
+  flex: 1;
+  width: 100%;
+}
+
+/* 大标题（位于安全区留白之后） */
+.BigTitle {
+  color: var(--text-primary);
+  font-size: 34px;
+  font-weight: bold;
+  padding: 4px 16px 12px 16px;
+}
+
+/* 常驻标题栏：安全区(动态 paddingTop) + 44pt 标题行，始终不透明，内容从其下方开始 */
+.HeaderBand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-nav);
+  z-index: 10;
+}
+
+.HeaderBandTitleRow {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.HeaderBandTitle {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ===== 搜索框 ===== */
+.SearchBox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--bg-fill);
+  border-radius: 10px;
+  height: 38px;
+  margin: 0 16px 16px 16px;
+  padding: 0 10px;
+}
+
+.SearchIcon {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+}
+
+.SearchPlaceholder {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* ===== 2x2 分类卡片 ===== */
+.Grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 0 16px;
+}
+
+.Card {
+  width: 48%;
+  height: 72px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.CardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.CardLabel {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* ===== 错误提示条 ===== */
+.ErrBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 4px 16px 0 16px;
+  padding: 12px 4px;
+}
+
+.ErrIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+}
+
+.ErrMsg {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.RetryBtn {
+  width: 52px;
+  height: 32px;
+  border-radius: 10px;
+  background-color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.RetryIcon {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+/* ===== 歌曲列表卡片 ===== */
+.Section {
+  margin: 4px 16px 0 16px;
+}
+
+.SectionTitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 8px 4px 8px 4px;
+  text-transform: uppercase;
+}
+
+.SongCard {
+  background-color: var(--bg-card);
+  border-radius: 14px;
+  padding: 4px 0;
+}
+
+.Song {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.SongIndex {
+  width: 28px;
+  color: var(--text-tertiary);
+  font-size: 15px;
+}
+
+.Song.active .SongIndex {
+  color: var(--accent);
+}
+
+.SongMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.SongTitle {
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.Song.active .SongTitle {
+  color: var(--accent);
+}
+
+.SongArtist {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.SongDuration {
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* ===== 设置分组 ===== */
+.Group {
+  margin: 0 16px 8px 16px;
+}
+
+/* 最后一组底部留白改用显式占位元素 ScrollSpacer（Lynx 原生引擎对 :last-child 支持不全） */
+.ScrollSpacer {
+  width: 100%;
+  height: 190px;
+}
+
+.GroupTitle {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: bold;
+  margin: 14px 4px 8px 4px;
+}
+
+.GroupBody {
+  background-color: var(--bg-card);
+  border-radius: 14px;
+  padding: 4px 0;
+}
+
+.SettingItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 11px 14px;
+}
+
+.SettingIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.SettingIconText {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.SettingBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+}
+
+.SettingTitle {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.SettingDesc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 17px;
+}
+
+.SettingArrow {
+  color: var(--text-quaternary);
+  font-size: 22px;
+}
+
+.SettingValue {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.Divider {
+  height: 1px;
+  background-color: var(--separator);
+  margin-left: 64px;
+}
+
+/* lynx-ui Switch：状态类用官方 ui-checked，外观由下面的样式呈现。
+ * 外层 .SettingSwitch 负责撑大点击区（padding 不占布局，Track 本体 50x30） */
+.SettingSwitch {
+  padding: 8px;
+  margin: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.SwitchTrack {
+  width: 50px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: var(--bg-fill);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.SwitchTrack.ui-checked {
+  background-color: var(--success);
+}
+
+.SwitchThumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #ffffff;
+}
+
+.SwitchThumb.ui-checked {
+  margin-left: auto;
+}
+
+/* ===== 悬浮迷你播放条 ===== */
+.MiniPlayer {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 104px;
+  height: 64px;
+  background-color: var(--bg-float);
+  border-radius: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.MiniDisc {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background-color: var(--bg-fill-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.MiniDisc.spinning {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.MiniDiscIcon {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.MiniInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+}
+
+.MiniTitle {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.MiniArtist {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 1px;
+}
+
+.MiniBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.MiniBtnIcon {
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== 悬浮胶囊底部导航 ===== */
+.TabBarWrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.TabBar {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--bg-float);
+  border-radius: 32px;
+  padding: 8px 10px;
+}
+
+.TabItem {
+  width: 96px;
+  height: 56px;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.TabItem.active {
+  background-color: var(--bg-fill-soft);
+}
+
+.TabIcon {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.TabIcon.active {
+  color: var(--accent);
+}
+
+.TabLabel {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.TabLabel.active {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* ===== Icon 组件的双主题节点切换 ===== */
+.IconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.IconDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .IconLight {
+    display: none;
+  }
+  .IconDark {
+    display: flex;
+  }
+}
+
+/* ===== 主题变量：由 JS 主题状态驱动（App 根节点挂 .theme-light/.theme-dark，
+ * 见 useTheme.ts。不用 @media —— Web 预览端 Lynx CSS 管线会丢弃 media query） ===== */
+.theme-light {
+  --bg-page: #f2f2f7;
+  --bg-nav: #f9f9f9;
+  --bg-card: #ffffff;
+  --bg-fill: #e3e3e8;       /* 搜索框、开关关态 */
+  --bg-fill-soft: #e8e8ec;  /* tab 选中、唱片占位 */
+  --bg-float: rgba(245, 245, 247, 0.96);
+  --text-primary: #1c1c1e;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #a0a0a8;
+  --text-quaternary: #c7c7cc;
+  --separator: #f0f0f2;
+  --accent: #e5484d;
+  --success: #34c759;
+}
+
+.theme-dark {
+  --bg-page: #000000;
+  --bg-nav: #1c1c1e;
+  --bg-card: #1c1c1e;
+  --bg-fill: #2c2c2e;
+  --bg-fill-soft: #333338;
+  --bg-float: rgba(28, 28, 30, 0.96);
+  --text-primary: #f2f2f7;
+  --text-secondary: #98989e;
+  --text-tertiary: #7c7c82;
+  --text-quaternary: #48484c;
+  --separator: #2c2c2e;
+  --accent: #ff5a5f;
+  --success: #34c759;
+}
