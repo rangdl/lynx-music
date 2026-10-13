@@ -7,7 +7,7 @@
  */
 
 import { SourceBridge, ScriptError } from '../../runtime/bridge.js';
-import { storage, httpRequest } from '../../platform/index.js';
+import { storage, httpRequest, utf8Decode } from '../../platform/index.js';
 import { unzipSync } from 'fflate';
 import type { LxRequestPayload, LxSourceInfo, ScriptEntry, ResolveErrorCode, UrlResult } from '../../runtime/types.js';
 import { ResolveError } from '../../runtime/types.js';
@@ -126,7 +126,7 @@ export class SourceService {
     if (bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b) {
       return this.installFromZip(bytes);
     }
-    const text = new TextDecoder('utf-8').decode(bytes);
+    const text = utf8Decode(bytes); // 真机 PrimJS 无 TextDecoder,统一走 platform 助手
     const entry = await this.install(text);
     return { installed: [entry], errors: [] };
   }
@@ -149,7 +149,7 @@ export class SourceService {
     const installed: ScriptEntry[] = [];
     const errors: string[] = [];
     for (const p of jsPaths) {
-      const text = new TextDecoder('utf-8').decode(files[p]);
+      const text = utf8Decode(files[p]);
       try {
         installed.push(await this.install(text));
       } catch (e) {

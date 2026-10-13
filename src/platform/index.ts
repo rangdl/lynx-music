@@ -121,6 +121,34 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
     .finally(() => { if (timer) clearTimeout(timer); });
 }
 
+/* ---------- utf8Decode:二进制 → UTF-8 文本 ----------
+ * 实测真机 PrimJS 无 TextDecoder(报 "Can't find variable: TextDecoder"),
+ * Web/Node 环境有。缺失时手写 UTF-8 解码(纯 JS,含多字节合并)。 */
+export function utf8Decode(bytes: Uint8Array): string {
+  const G = globalThis as unknown as { TextDecoder?: new (enc: string) => { decode(b: Uint8Array): string } };
+  if (G.TextDecoder) {
+    try { return new G.TextDecoder('utf-8').decode(bytes); } catch { /* 落入手写实现 */ }
+  }
+  let out = '';
+  let i = 0;
+  while (i < bytes.length) {
+    const b = bytes[i];
+    if (b < 0x80) { out += String.fromCharCode(b); i += 1; }
+    else if (b < 0xe0) { out += String.fromCharCode(((b & 0x1f) << 6) | (bytes[i + 1] & 0x3f)); i += 2; }
+    else if (b < 0xf0) {
+      out += String.fromCharCode(((b & 0x0f) << 12) | ((bytes[i + 1] & 0x3f) << 6) | (bytes[i + 2] & 0x3f));
+      i += 3;
+    } else {
+      // 4 字节(增补平面):合成代理对
+      const cp = ((b & 0x07) << 18) | ((bytes[i + 1] & 0x3f) << 12) | ((bytes[i + 2] & 0x3f) << 6) | (bytes[i + 3] & 0x3f);
+      const v = cp - 0x10000;
+      out += String.fromCharCode(0xd800 + (v >> 10), 0xdc00 + (v & 0x3ff));
+      i += 4;
+    }
+  }
+  return out;
+}
+
 /* ---------- system:安全区等宿主信息(迁自 App.tsx readSafeTop) ---------- */
 
 /** 安全区回退值:真机由宿主 NativeModules.SafeArea 注入;开源版无 getSystemInfoSync,不可依赖 */
