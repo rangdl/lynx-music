@@ -7,6 +7,7 @@ import { MiniPlayer } from './ui/components/MiniPlayer.js';
 import { LibraryPage } from './ui/pages/LibraryPage.js';
 import { SettingsPage } from './ui/pages/SettingsPage.js';
 import { SourceManagePage } from './ui/pages/SourceManagePage.js';
+import { NetDiagPage } from './ui/pages/NetDiagPage.js';
 import { initialToggles } from './data/settings.js';
 import { useTheme } from './ui/theme/useTheme.js';
 import { usePlayerStore } from './state/playerStore.js';
@@ -52,7 +53,7 @@ export function App() {
     setNavOpacity(e.height > 0 ? Math.max(0, Math.min(1, e.offset / e.height)) : 1);
   }, []);
 
-  const title = tab === 'library' ? '音乐库' : tab === 'settings' ? '设置' : '音源管理';
+  const title = tab === 'library' ? '音乐库' : tab === 'settings' ? '设置' : tab === 'sources' ? '音源管理' : '网络诊断';
 
   return (
     <view className={theme === 'dark' ? 'Page theme-dark' : 'Page theme-light'}>
@@ -73,8 +74,10 @@ export function App() {
           toggles={toggles}
           onToggle={onToggle}
         />
-      ) : (
+      ) : tab === 'sources' ? (
         <SourceManagePage safeTop={safeTop} onOffsetChange={onOffsetChange} />
+      ) : (
+        <NetDiagPage safeTop={safeTop} onOffsetChange={onOffsetChange} />
       )}
 
       <MiniPlayer

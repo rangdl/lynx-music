@@ -2,11 +2,12 @@
 import { Icon } from './Icon.js';
 import { IconMusic, IconGear, IconBolt } from '../icons/icons.js';
 
-export type TabName = 'library' | 'sources' | 'settings';
+export type TabName = 'library' | 'sources' | 'netdiag' | 'settings';
 
 const TABS: { key: TabName; label: string; Icon: typeof IconMusic }[] = [
   { key: 'library', label: '音乐库', Icon: IconMusic },
   { key: 'sources', label: '音源', Icon: IconBolt },
+  { key: 'netdiag', label: '诊断', Icon: IconBolt },
   { key: 'settings', label: '设置', Icon: IconGear },
 ];
 

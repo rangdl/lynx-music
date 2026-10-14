@@ -635,3 +635,99 @@
   color: var(--success);
   font-size: 12px;
 }
+
+/* ===== 网络诊断页 ===== */
+.DiagEnvToggle {
+  padding: 10px 12px;
+}
+
+.DiagEnvToggleText {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.DiagEnvList {
+  padding: 0 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.DiagEnvLine {
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.DiagHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.DiagRunAllBtn {
+  background-color: var(--accent);
+  border-radius: 8px;
+  padding: 6px 14px;
+}
+
+.DiagRunAllBtnText {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.DiagRow {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.DiagRowHead {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.DiagName {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.DiagBadge {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.DiagBadge.ok {
+  color: var(--success);
+}
+
+.DiagBadge.fail {
+  color: var(--accent);
+}
+
+.DiagNote {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.DiagDetail {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.DiagLine {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.DiagLine.err {
+  color: var(--accent);
+}
