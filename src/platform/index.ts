@@ -93,8 +93,9 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
 
   const fetchOpts: Record<string, unknown> = {
     method: (opts.method as string) || 'GET',
-    headers: opts.headers ?? {},
   };
+  const hdrs = opts.headers as Record<string, string> | undefined;
+  if (hdrs && Object.keys(hdrs).length) fetchOpts.headers = hdrs;
   if (opts.body != null) fetchOpts.body = opts.body as string;
   // signal 仅在 AbortController 存在时才加入:实测真机传 signal: undefined
   // 会让原生层取消请求(nginx 记 499 client closed request)

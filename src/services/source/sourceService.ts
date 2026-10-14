@@ -99,36 +99,52 @@ export class SourceService {
   }
 
   /** URL 导入:下载后按内容分流——zip 解包装全部 .js,否则按单脚本安装。
-   *  返回安装成功的条目列表(部分成功不回滚:逐个装,失败进 errors)。 */
+   *  返回安装成功的条目列表(部分成功不回滚:逐个装,失败进 errors)。
+   *  jsdelivr 多镜像重试:实测真机原生 fetch 对部分 CDN 节点提前断连(HTTP 499),
+   *  逐镜像尝试可绕过单节点故障。 */
   async installFromUrl(url: string): Promise<{ installed: ScriptEntry[]; errors: string[] }> {
     'background only';
-    const bytes = await new Promise<Uint8Array>((resolve, reject) => {
-      this.download(url, (err, resp) => {
-        if (err) return reject(new Error(`下载失败:${err.message}`));
-        if (!resp || resp.statusCode >= 400) return reject(new Error(`下载失败:HTTP ${resp?.statusCode ?? '?'}`));
-        const b = resp.body;
-        // http 封装对非 JSON 返回纯文本字符串;zip 是二进制,JSON.parse 必然失败 → 文本路径
-        if (typeof b === 'string') {
-          const arr = new Uint8Array(b.length);
-          for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i) & 0xff;
-          resolve(arr);
-        } else if (b instanceof Uint8Array) {
-          resolve(b);
-        } else if (b && Array.isArray((b as { data?: number[] }).data)) {
-          resolve(new Uint8Array((b as { data: number[] }).data));
-        } else {
-          reject(new Error('下载内容无法识别'));
-        }
-      });
-    });
-
+    const bytes = await this.downloadWithRetry(url);
     // zip 魔数 PK\x03\x04
     if (bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b) {
       return this.installFromZip(bytes);
     }
-    const text = utf8Decode(bytes); // 真机 PrimJS 无 TextDecoder,统一走 platform 助手
+    const text = utf8Decode(bytes);
     const entry = await this.install(text);
     return { installed: [entry], errors: [] };
+  }
+
+  /** 下载 + 镜像重试。jsdelivr 三镜像;非 jsdelivr URL 原样单次。 */
+  private async downloadWithRetry(url: string): Promise<Uint8Array> {
+    const candidates = url.includes('jsdelivr.net')
+      ? ['fastly.jsdelivr.net', 'cdn.jsdelivr.net', 'gcore.jsdelivr.net'].map((h) => url.replace(/https?:\/\/[^/]+/, `https://${h}`))
+      : [url];
+    const errors: string[] = [];
+    for (const u of candidates) {
+      try {
+        return await new Promise<Uint8Array>((resolve, reject) => {
+          this.download(u, (err, resp) => {
+            if (err) return reject(new Error(err.message));
+            if (!resp || resp.statusCode >= 400) return reject(new Error(`HTTP ${resp?.statusCode ?? '?'}`));
+            const b = resp.body;
+            if (typeof b === 'string') {
+              const arr = new Uint8Array(b.length);
+              for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i) & 0xff;
+              resolve(arr);
+            } else if (b instanceof Uint8Array) {
+              resolve(b);
+            } else if (b && Array.isArray((b as { data?: number[] }).data)) {
+              resolve(new Uint8Array((b as { data: number[] }).data));
+            } else {
+              reject(new Error('下载内容无法识别'));
+            }
+          });
+        });
+      } catch (e) {
+        errors.push(`${new URL(u).host}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    throw new Error(`下载失败(${errors.join('; ')})`);
   }
 
   /** 压缩包安装:解包,取全部 .js(按路径排序保证确定性),逐个走 install。
