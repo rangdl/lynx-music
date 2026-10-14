@@ -110,6 +110,13 @@ export function SourceManagePage({ safeTop, onOffsetChange }: SourceManagePagePr
               <text className="SourceInstallBtnText">{installing ? '下载中…' : '导入'}</text>
             </view>
           </view>
+          {urlDraft ? (
+            <view className="SourceUrlPreview">
+              <text className="SourceUrlPreviewText">将请求({urlDraft.length}字):{urlDraft}</text>
+            </view>
+          ) : (
+            <view />
+          )}
 
           {error ? (
             <view className="SourceResultRow" bindtap={handleDismissError}>

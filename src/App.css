@@ -731,3 +731,12 @@
 .DiagLine.err {
   color: var(--accent);
 }
+
+.SourceUrlPreview {
+  padding: 6px 12px 0 12px;
+}
+
+.SourceUrlPreviewText {
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
