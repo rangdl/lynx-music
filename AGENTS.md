@@ -83,5 +83,6 @@ These were confirmed by measurement or by docs. Do not re-litigate them in code:
 ## Known Platform Limitations (measured)
 
 - **Web preview has no audio playback path**: the ReactLynx app logic runs in a web worker (no `document`) on the web target, so `platform/audio.ts`'s `<audio>` fallback cannot create elements from the background context — playback correctly degrades to an error message ("当前环境不支持 Web 音频播放"). Real devices use `NativeModules.Audio` (main-thread native). A dedicated host bridge will be needed if browser playback is ever required.
+- **Never pass `signal: undefined` to fetch on device** (measured 2026-10-14: native layer cancels the request, nginx logs 499 "client closed request") — only include the `signal` key when an AbortController exists.
 - **`x-input` collapses newlines**: single-line `<input>` turns pasted multi-line text's `\n` into spaces — always use `<textarea>` for script/code input (this broke `@name` header parsing during script install).
 - **`localStorage` is unavailable in the web-preview sandbox iframe** (`about:srcdoc`, opaque origin): `platform/storage.ts` keeps an in-memory fallback map; persistence across reloads works in real browsers and on device.

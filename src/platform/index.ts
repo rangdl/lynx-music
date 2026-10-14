@@ -94,9 +94,11 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
   const fetchOpts: Record<string, unknown> = {
     method: (opts.method as string) || 'GET',
     headers: opts.headers ?? {},
-    signal: controller?.signal,
   };
   if (opts.body != null) fetchOpts.body = opts.body as string;
+  // signal 仅在 AbortController 存在时才加入:实测真机传 signal: undefined
+  // 会让原生层取消请求(nginx 记 499 client closed request)
+  if (controller) fetchOpts.signal = controller.signal;
 
   fetch(url, fetchOpts as Parameters<typeof fetch>[1])
     .then(async (r) => {
@@ -110,8 +112,14 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
       if (contentType.includes('json')) {
         const text = await r.text();
         try { body = JSON.parse(text); } catch { body = text; }
-      } else {
+      } else if (typeof r.arrayBuffer === 'function') {
         body = new Uint8Array(await r.arrayBuffer());
+      } else {
+        // 老宿主无 arrayBuffer():text() + charCode 降级(对二进制有损,仅兜底)
+        const text = await r.text();
+        const arr = new Uint8Array(text.length);
+        for (let i = 0; i < text.length; i++) arr[i] = text.charCodeAt(i) & 0xff;
+        body = arr;
       }
       cb(null, { statusCode: r.status, headers, body });
     })
