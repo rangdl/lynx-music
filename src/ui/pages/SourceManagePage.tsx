@@ -39,11 +39,17 @@ export function SourceManagePage({ safeTop, onOffsetChange }: SourceManagePagePr
     // 实测排查:x-input 粘贴可能带入不可见字符(零宽空格 U+200B/U+FEFF 等),
     // trim() 不清除 → 原生 fetch 对畸形 URL 报 499。这里清除所有非可见 ASCII。
     // eslint-disable-next-line no-control-regex
-    const cleaned = urlDraft.replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, '').trim();
+    let cleaned = urlDraft.replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, '').trim();
     if (!cleaned) return;
-    // 截断检测:实测粘贴长 URL 被截到 ~75 字符,残缺 URL 的 499 很难排查。
-    // 最小合法长度:协议+host(20+),短于此必是截断。
     if (cleaned.length < 30) return;
+    // 结案(2026-10-14):x-input 把粘贴的 URL 百分号解码了——预览行显示
+    // 「.../V260907/念心音源 %20v1.0.2.js」(中文裸字符 + 空格 + 残留字面 %20),
+    // len75 恰为解码后长度。原生 fetch 对含中文/空格的 URL 一律 499。
+    // 归一化三步(node 验证输出与原始编码 URL 逐字符一致):
+    // 1) decodeURI:残留 %20 等编码解码为真实字符  2) 多空格合并  3) encodeURI 重编码
+    try {
+      cleaned = encodeURI(decodeURI(cleaned).replace(/ {2,}/g, ' '));
+    } catch { /* 含孤立 % 等非法序列时保留原值,让错误可见 */ }
     void installFromUrl(cleaned).then((ok) => { if (ok) setUrlDraft(''); });
   };
 
