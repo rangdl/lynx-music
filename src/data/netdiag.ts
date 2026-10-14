@@ -16,7 +16,7 @@ export const NET_TESTS: NetTest[] = [
   { id: 'relay-zip', name: '本机中转 zip(二进制)', url: 'http://[240e:343:d10c:aa00::1000]:3089/pkg.zip', note: '验证 arrayBuffer 二进制读取' },
 
   // —— fetch 选项对照组:验证 signal/header 等 options 对原生层的影响 ——
-  { id: 'relay-signal', name: '中转+AbortSignal 对照', url: 'http://[240e:343:d10c:aa00::1000]:3089/nianxin.js', note: '同基准项但传 signal:若此项 499 而基准 OK,则 signal 是元凶' },
+  { id: 'relay-signal', name: '中转+AbortSignal 对照', url: 'http://[240e:343:d10c:aa00::1000]:3089/nianxin.js', note: '预期 499(实测结论):真机 fetch 不支持 signal。此项保留作回归验证' },
 
   // —— 国内基线:应全部成功 ——
   { id: 'baidu', name: '百度(国内基线)', url: 'https://www.baidu.com', note: '国内 HTTPS 基线' },

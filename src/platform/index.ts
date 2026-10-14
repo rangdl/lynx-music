@@ -88,8 +88,19 @@ export type HttpCallback = (
 
 export function httpRequest(url: string, opts: Record<string, unknown>, cb: HttpCallback, timeoutMs = 15000): void {
   'background only';
-  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  // 实测(2026-10-14 诊断页对照项):真机原生 fetch 不支持 AbortSignal ——
+  // 传 signal(无论 undefined 还是真实实例)都会让原生层取消请求,映射 HTTP 499。
+  // 因此完全不向 fetch 传 signal;超时用 JS 软超时:到时未完成即回调错误
+  // (原生请求本身继续,由宿主默认超时兜底回收)。
+  let done = false;
+  const finish = (err: Error | null, resp: { statusCode: number; headers: Record<string, string>; body: unknown } | null) => {
+    if (done) return;
+    done = true;
+    cb(err, resp);
+  };
+  const timer = setTimeout(() => {
+    finish(new Error(`请求超时(${timeoutMs}ms)`), null);
+  }, timeoutMs);
 
   const fetchOpts: Record<string, unknown> = {
     method: (opts.method as string) || 'GET',
@@ -97,9 +108,6 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
   const hdrs = opts.headers as Record<string, string> | undefined;
   if (hdrs && Object.keys(hdrs).length) fetchOpts.headers = hdrs;
   if (opts.body != null) fetchOpts.body = opts.body as string;
-  // signal 仅在 AbortController 存在时才加入:实测真机传 signal: undefined
-  // 会让原生层取消请求(nginx 记 499 client closed request)
-  if (controller) fetchOpts.signal = controller.signal;
 
   fetch(url, fetchOpts as Parameters<typeof fetch>[1])
     .then(async (r) => {
@@ -122,12 +130,12 @@ export function httpRequest(url: string, opts: Record<string, unknown>, cb: Http
         for (let i = 0; i < text.length; i++) arr[i] = text.charCodeAt(i) & 0xff;
         body = arr;
       }
-      cb(null, { statusCode: r.status, headers, body });
+      finish(null, { statusCode: r.status, headers, body });
     })
     .catch((e: unknown) => {
-      cb(e instanceof Error ? e : new Error(String(e)), null);
+      finish(e instanceof Error ? e : new Error(String(e)), null);
     })
-    .finally(() => { if (timer) clearTimeout(timer); });
+    .finally(() => { clearTimeout(timer); });
 }
 
 /* ---------- utf8Decode:二进制 → UTF-8 文本 ----------
