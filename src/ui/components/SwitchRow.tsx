@@ -8,7 +8,7 @@ import type { IconDef } from '../icons/icons.js';
 export type RowControl =
   | { type: 'toggle'; on: boolean; onToggle: () => void }
   | { type: 'value'; value: string }
-  | { type: 'link' };
+  | { type: 'link'; onTap?: () => void };
 
 export interface SwitchRowProps {
   icon: IconDef;
@@ -16,11 +16,23 @@ export interface SwitchRowProps {
   title: string;
   desc: string;
   control: RowControl;
+  /** 页面注入的整行点击回调(外观切换/子页跳转等);优先于 control.onTap */
+  onTapRow?: () => void;
 }
 
-export function SwitchRow({ icon, iconColor, title, desc, control }: SwitchRowProps) {
+export function SwitchRow({ icon, iconColor, title, desc, control, onTapRow }: SwitchRowProps) {
+  // 行级点击:toggle 行不绑(避免 Switch 冒泡双触发);其余行有回调才绑
+  const handleTap = () => {
+    'background only';
+    if (onTapRow) { onTapRow(); return; }
+    if (control.type === 'link' && control.onTap) control.onTap();
+  };
+  const bindTap = control.type === 'toggle' ? undefined : (onTapRow || (control.type === 'link' && control.onTap) ? handleTap : undefined);
   return (
-    <view className="SettingItem">
+    <view
+      className="SettingItem"
+      bindtap={bindTap}
+    >
       <view className="SettingIcon" style={{ backgroundColor: iconColor }}>
         <view className="SettingIconText"><Icon def={icon} size={16} tone="onAccent" /></view>
       </view>

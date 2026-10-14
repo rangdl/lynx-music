@@ -73,3 +73,5 @@ export const IconDolby: IconDef = (s, c) => strokeSvg(s, c, `<rect width="16" he
 export const IconBitPerfect: IconDef = (s, c) => strokeSvg(s, c, `<path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2" />`);
 
 export const IconInfo: IconDef = (s, c) => strokeSvg(s, c, `<circle cx="12" cy="12" r="10" /> <path d="M12 16v-4" /> <path d="M12 8h.01" />`);
+
+export const IconMoon: IconDef = (s, c) => strokeSvg(s, c, `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />`);

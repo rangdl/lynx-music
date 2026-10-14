@@ -1,7 +1,7 @@
 /* 数据与配置：歌曲、分类、设置分组（UI 结构与业务数据分离） */
 import {
   IconDisc, IconMic, IconNote, IconPlaylist, IconMusic,
-  IconImport, IconUserSplit, IconCopy, IconBolt, IconClockSync, IconStar,
+  IconImport, IconUserSplit, IconCopy, IconBolt, IconClockSync, IconStar, IconMoon,
   IconSparkle, IconQuote, IconGrid, IconGlobe, IconBackup, IconUpload,
   IconDolby, IconBitPerfect, IconInfo,
 } from '../ui/icons/icons.js';
@@ -50,7 +50,7 @@ export interface SettingGroup {
 }
 
 const toggle = (on?: boolean) => (on: boolean, onToggle: () => void): RowControl => ({ type: 'toggle', on, onToggle });
-const link = () => (_on: boolean, _onToggle: () => void): RowControl => ({ type: 'link' });
+const link = () => (_on: boolean, onOpen?: () => void): RowControl => ({ type: 'link', onTap: onOpen });
 const value = (v: string) => (_on: boolean, _onToggle: () => void): RowControl => ({ type: 'value', value: v });
 
 export const SETTING_GROUPS: SettingGroup[] = [
@@ -77,11 +77,13 @@ export const SETTING_GROUPS: SettingGroup[] = [
       { key: 'lyric', Icon: IconQuote, iconColor: '#4cb2c9', title: '歌词 API', desc: '添加歌词 API，自动寻找歌词', control: link() },
       { key: 'cover', Icon: IconGrid, iconColor: '#5cb85c', title: '封面 API', desc: '添加封面 API，自动寻找封面', control: link() },
       { key: 'source', Icon: IconMusic, iconColor: '#e5484d', title: '音源 API', desc: '管理 lx 音源脚本与取链接服务', control: link() },
+      { key: 'netdiag', Icon: IconBolt, iconColor: '#f59e0b', title: '网络诊断', desc: '测试各域名连通性,定位真机网络问题', control: link() },
     ],
   },
   {
     title: '其它',
     items: [
+      { key: 'appearance', Icon: IconMoon, iconColor: '#5a5ad6', title: '外观', desc: '浅色 / 深色主题', control: value('浅色') },
       { key: 'lmp', Icon: IconGlobe, iconColor: '#3b82f6', title: 'LMP助手', desc: '通过电脑浏览器管理本地音乐文件', control: link() },
       { key: 'backup', Icon: IconBackup, iconColor: '#e5484d', title: '备份管理', desc: '备份 / 恢复账号与歌单', control: link() },
       { key: 'lastfm', Icon: IconUpload, iconColor: '#d2232a', title: 'Last.fm', desc: '登录并上传数据到 Last.fm', control: link() },

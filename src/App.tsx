@@ -6,17 +6,18 @@ import { TabBar } from './ui/components/TabBar.js';
 import { MiniPlayer } from './ui/components/MiniPlayer.js';
 import { LibraryPage } from './ui/pages/LibraryPage.js';
 import { SettingsPage } from './ui/pages/SettingsPage.js';
-import { SourceManagePage } from './ui/pages/SourceManagePage.js';
-import { NetDiagPage } from './ui/pages/NetDiagPage.js';
 import { initialToggles } from './data/settings.js';
 import { useTheme } from './ui/theme/useTheme.js';
 import { usePlayerStore } from './state/playerStore.js';
 import { readSafeTop } from './platform/index.js';
+import type { SettingsSub } from './ui/pages/SettingsPage.js';
 import type { TabName } from './ui/components/TabBar.js';
 
 export function App() {
   const theme = useTheme();
   const [tab, setTab] = useState<TabName>('library');
+  // 设置页子页面(音源管理/网络诊断),状态提升以驱动 NavBar 标题
+  const [settingsSub, setSettingsSub] = useState<SettingsSub>('main');
   const [navOpacity, setNavOpacity] = useState(0);
   const [toggles, setToggles] = useState<Record<string, boolean>>(initialToggles);
 
@@ -53,7 +54,11 @@ export function App() {
     setNavOpacity(e.height > 0 ? Math.max(0, Math.min(1, e.offset / e.height)) : 1);
   }, []);
 
-  const title = tab === 'library' ? '音乐库' : tab === 'settings' ? '设置' : tab === 'sources' ? '音源管理' : '网络诊断';
+  const title = tab === 'library'
+    ? '音乐库'
+    : settingsSub === 'sources' ? '音源管理'
+    : settingsSub === 'netdiag' ? '网络诊断'
+    : '设置';
 
   return (
     <view className={theme === 'dark' ? 'Page theme-dark' : 'Page theme-light'}>
@@ -67,17 +72,15 @@ export function App() {
           playing={playing}
           onTapSong={onTapSong}
         />
-      ) : tab === 'settings' ? (
+      ) : (
         <SettingsPage
           safeTop={safeTop}
           onOffsetChange={onOffsetChange}
           toggles={toggles}
           onToggle={onToggle}
+          sub={settingsSub}
+          onSubChange={setSettingsSub}
         />
-      ) : tab === 'sources' ? (
-        <SourceManagePage safeTop={safeTop} onOffsetChange={onOffsetChange} />
-      ) : (
-        <NetDiagPage safeTop={safeTop} onOffsetChange={onOffsetChange} />
       )}
 
       <MiniPlayer

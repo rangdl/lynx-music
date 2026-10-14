@@ -740,3 +740,29 @@
   color: var(--text-tertiary);
   font-size: 11px;
 }
+
+/* ===== 设置子页(音源管理/网络诊断)返回行 ===== */
+.SubPageBack {
+  padding: 8px 16px 4px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.SubPageBackBtn {
+  padding: 6px 10px;
+  margin-left: -10px;
+}
+
+.SubPageBackText {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.SubPageBackTitle {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 8px;
+}
