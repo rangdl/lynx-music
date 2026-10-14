@@ -164,7 +164,7 @@ export class SourceService {
     // 真机实测:Lynx 原生 HTTP 连不上目标(墙/DNS/SSL)时统一映射为 HTTP 499
     const all499 = errors.every((e) => e.includes('499'));
     if (all499) {
-      throw new Error('下载失败:网络无法访问该域名(499)。请检查网络,或把链接改为粘贴导入,或使用局域网地址');
+      throw new Error(`下载失败:网络无法访问该域名(499) [${errors.join('; ')}]。可改为粘贴导入`);
     }
     throw new Error(`下载失败(${errors.join('; ')})`);
   }

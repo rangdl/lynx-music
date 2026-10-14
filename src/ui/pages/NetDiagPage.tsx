@@ -42,6 +42,27 @@ function probeEnv(): string[] {
   return checks.map(([k, v]) => `${k}: ${v === undefined ? '无' : typeof v}`);
 }
 
+/** 复制 httpRequest(platform)的完整调用形状:进入 Promise + 回调 + arrayBuffer。
+ *  与 runTest(裸 fetch await)对比:若此项 499 而裸 fetch OK,则差异在
+ *  httpRequest 的调用形状(Promise 链/回调)而非 URL 或参数。 */
+function runViaHttpRequestShape(url: string): Promise<TestState> {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    fetch(url, { method: 'GET' })
+      .then((r: { status: number; statusText: string; arrayBuffer?: () => Promise<ArrayBuffer> }) => {
+        const ms = Date.now() - t0;
+        return r.arrayBuffer?.().then((buf) => {
+          resolve({ status: r.status >= 200 && r.status < 300 ? 'ok' : 'fail', code: r.status, statusText: r.statusText, ms, bytes: buf.byteLength });
+        }).catch((e: unknown) => {
+          resolve({ status: 'fail', code: r.status, statusText: r.statusText, ms, err: `读body失败:${String((e as Error)?.message ?? e)}` });
+        });
+      })
+      .catch((e: unknown) => {
+        resolve({ status: 'fail', ms: Date.now() - t0, err: `fetch异常:${String((e as Error)?.message ?? e).slice(0, 120)}` });
+      });
+  });
+}
+
 async function runTest(url: string, method: 'GET' | 'POST', withSignal = false): Promise<TestState> {
   'background only';
   const t0 = Date.now();
@@ -89,7 +110,10 @@ export function NetDiagPage({ safeTop, onOffsetChange }: NetDiagPageProps) {
     const t = NET_TESTS.find((x) => x.id === id);
     if (!t) return;
     setResults((prev) => ({ ...prev, [id]: { status: 'running' } }));
-    void runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal')).then((r) => {
+    const p = t.id.endsWith('-viahttp')
+      ? runViaHttpRequestShape(t.url)
+      : runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal'));
+    void p.then((r) => {
       'background only';
       setResults((prev) => ({ ...prev, [id]: r }));
     });
@@ -102,7 +126,9 @@ export function NetDiagPage({ safeTop, onOffsetChange }: NetDiagPageProps) {
       'background only';
       for (const t of NET_TESTS) {
         setResults((prev) => ({ ...prev, [t.id]: { status: 'running' } }));
-        const r = await runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal'));
+        const r = t.id.endsWith('-viahttp')
+          ? await runViaHttpRequestShape(t.url)
+          : await runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal'));
         setResults((prev) => ({ ...prev, [t.id]: r }));
       }
     })();
