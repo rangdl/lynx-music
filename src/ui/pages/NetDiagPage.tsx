@@ -42,12 +42,15 @@ function probeEnv(): string[] {
   return checks.map(([k, v]) => `${k}: ${v === undefined ? '无' : typeof v}`);
 }
 
-async function runTest(url: string, method: 'GET' | 'POST'): Promise<TestState> {
+async function runTest(url: string, method: 'GET' | 'POST', withSignal = false): Promise<TestState> {
   'background only';
   const t0 = Date.now();
   try {
     // 键保持干净:不传 signal/headers(空对象),变量逐一验证
     const opts: Record<string, unknown> = { method };
+    if (withSignal && typeof AbortController !== 'undefined') {
+      opts.signal = new AbortController().signal;
+    }
     const r = await fetch(url, opts as Parameters<typeof fetch>[1]);
     const ms = Date.now() - t0;
     let bytes = 0;
@@ -86,7 +89,7 @@ export function NetDiagPage({ safeTop, onOffsetChange }: NetDiagPageProps) {
     const t = NET_TESTS.find((x) => x.id === id);
     if (!t) return;
     setResults((prev) => ({ ...prev, [id]: { status: 'running' } }));
-    void runTest(t.url, t.method ?? 'GET').then((r) => {
+    void runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal')).then((r) => {
       'background only';
       setResults((prev) => ({ ...prev, [id]: r }));
     });
@@ -99,7 +102,7 @@ export function NetDiagPage({ safeTop, onOffsetChange }: NetDiagPageProps) {
       'background only';
       for (const t of NET_TESTS) {
         setResults((prev) => ({ ...prev, [t.id]: { status: 'running' } }));
-        const r = await runTest(t.url, t.method ?? 'GET');
+        const r = await runTest(t.url, t.method ?? 'GET', t.id.endsWith('-signal'));
         setResults((prev) => ({ ...prev, [t.id]: r }));
       }
     })();
