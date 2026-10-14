@@ -41,6 +41,9 @@ export function SourceManagePage({ safeTop, onOffsetChange }: SourceManagePagePr
     // eslint-disable-next-line no-control-regex
     const cleaned = urlDraft.replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, '').trim();
     if (!cleaned) return;
+    // 截断检测:实测粘贴长 URL 被截到 ~75 字符,残缺 URL 的 499 很难排查。
+    // 最小合法长度:协议+host(20+),短于此必是截断。
+    if (cleaned.length < 30) return;
     void installFromUrl(cleaned).then((ok) => { if (ok) setUrlDraft(''); });
   };
 
@@ -92,10 +95,14 @@ export function SourceManagePage({ safeTop, onOffsetChange }: SourceManagePagePr
 
           {/* 方式二:URL 导入(.js 脚本或 .zip 压缩包,自动识别) */}
           <view className="SourceImport">
+            {/* 实测(2026-10-14):单行 input 粘贴长 URL 被截断到 ~75 字符
+                (默认 maxlength=140 却在 75 截断,x-input 粘贴行为),原生
+                fetch 对残缺 URL 报 499。显式放大 maxlength 并保留单行。 */}
             <input
               className="SourceUrlInput"
               default-value={urlDraft}
               bindinput={handleUrlInput}
+              maxlength={1000}
               placeholder="脚本或压缩包链接(.js / .zip)"
               placeholder-class="SourceInputPlaceholder"
             />
