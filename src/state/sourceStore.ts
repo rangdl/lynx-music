@@ -50,20 +50,22 @@ export const useSourceStore = create<SourceState>((set, get) => ({
     if (get().installing) return false;
     set({ installing: true, error: null, lastResult: null });
     try {
-      const { installed, errors } = await sourceService.installFromUrl(url);
+      const { installed, errors, skipped } = await sourceService.installFromUrl(url);
       const names = installed.map((s) => s.name).join('、');
       const parts = [
         installed.length ? `已安装:${names}` : '',
-        installed.length > 1 ? `(${installed.length} 个)` : '',
+        skipped ? `音源已存在,跳过 ${skipped} 个` : '',
         errors.length ? `失败 ${errors.length} 个` : '',
       ].filter(Boolean);
+      const summary = parts.join(' ') || '压缩包内没有新脚本';
+      const ok = installed.length > 0 || (skipped > 0 && !errors.length);
       set({
         installing: false,
         scripts: await sourceService.listScripts(),
-        lastResult: parts.join(' ') || null,
-        error: installed.length ? null : (parts.join(' ') || '导入失败'),
+        lastResult: ok ? summary : null,
+        error: ok ? null : summary,
       });
-      return installed.length > 0;
+      return ok;
     } catch (e) {
       set({ installing: false, error: String((e as Error)?.message ?? e) });
       return false;

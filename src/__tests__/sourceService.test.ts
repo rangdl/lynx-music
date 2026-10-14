@@ -113,14 +113,15 @@ describe.sequential('SourceService 集成(真实念心脚本,离线 mock)', () =
   });
 });
 
+/** 假网络:返回固定 body(Uint8Array 或 string) */
+function netWithBytes(body: Uint8Array | string) {
+  return (url: string, _o: Record<string, unknown>, cb: (e: Error | null, r: { statusCode: number; headers: Record<string, string>; body: unknown } | null) => void) => {
+    setTimeout(() => cb(null, { statusCode: 200, headers: {}, body }), 5);
+  };
+}
+
 describe.sequential('installFromUrl(URL 导入)', () => {
   beforeEach(async () => { await new SourceServiceWithNet((u, o, cb) => cb(null, null)).clearAll(); });
-
-  function netWithBytes(body: Uint8Array | string) {
-    return (url: string, _o: Record<string, unknown>, cb: (e: Error | null, r: { statusCode: number; headers: Record<string, string>; body: unknown } | null) => void) => {
-      setTimeout(() => cb(null, { statusCode: 200, headers: {}, body }), 5);
-    };
-  }
 
   test('单脚本 URL:下载文本并安装', async () => {
     const script = `
@@ -153,5 +154,26 @@ describe.sequential('installFromUrl(URL 导入)', () => {
   test('坏 zip 报可读错误', async () => {
     const svc = new SourceServiceWithNet(netWithBytes(new Uint8Array([0x50, 0x4b, 3, 4, 1, 2, 3, 4, 5, 6])));
     await expect(svc.installFromUrl('https://cdn.test/bad.zip')).rejects.toThrow('解压失败');
+  });
+});
+
+describe('zip 重复导入(已存在语义)', () => {
+  beforeEach(async () => { await new SourceServiceWithNet((u, o, cb) => cb(null, null)).clearAll(); });
+
+  test('同内容 zip 二次导入 → skipped=1 而非失败', async () => {
+    const { zipSync, strToU8 } = await import('fflate');
+    const mk = () => `/**\n * @name 重复音源\n * @version 1\n */\nlet { EVENT_NAMES, on, send } = globalThis.lx;\non(EVENT_NAMES.request, () => 'https://d.test/a.mp3');\nsend(EVENT_NAMES.inited, { status: true, sources: { kw: { type: 'music', name: 'kw', actions: ['musicUrl'], qualitys: ['128k'] } } });`;
+    const zip = new Uint8Array(zipSync({ 'pkg/a.js': strToU8(mk()) }));
+    const net = netWithBytes(zip);
+    const svc1 = new SourceServiceWithNet(net);
+    const first = await svc1.installFromUrl('https://cdn.test/pkg.zip');
+    expect(first.installed).toHaveLength(1);
+    expect(first.skipped).toBe(0);
+
+    const svc2 = new SourceServiceWithNet(net);
+    const second = await svc2.installFromUrl('https://cdn.test/pkg.zip');
+    expect(second.installed).toHaveLength(0);
+    expect(second.skipped).toBe(1);
+    expect(second.errors).toHaveLength(0);
   });
 });

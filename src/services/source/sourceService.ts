@@ -20,6 +20,13 @@ export interface ResolveQuery {
   quality: string;
 }
 
+/** URL/压缩包导入结果:skipped = 内容一致已存在的个数 */
+export interface ZipInstallResult {
+  installed: ScriptEntry[];
+  errors: string[];
+  skipped: number;
+}
+
 /** 头部注释元数据解析:@name/@version/@author(缺省给占位值) */
 export function parseScriptMeta(code: string): { name: string; version: string; author: string } {
   const head = code.slice(0, 2000);
@@ -32,8 +39,16 @@ export function parseScriptMeta(code: string): { name: string; version: string; 
 }
 
 /** 简单内容 id:名字+版本+长度(避免引入哈希依赖;区分度足够注册表用) */
+/** djb2 内容校验(32bit hex):配合 name@version 做脚本一致性判断。
+ *  用户语义:同名称+同内容 = 同一音源;仅长度在微调场景区分度不足。 */
+function contentHash(code: string): string {
+  let h = 5381;
+  for (let i = 0; i < code.length; i++) h = ((h << 5) + h + code.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, '0');
+}
+
 function makeId(meta: { name: string; version: string }, code: string): string {
-  return `${meta.name}@${meta.version}`.replace(/\s+/g, '_') + '#' + code.length;
+  return `${meta.name}@${meta.version}`.replace(/\s+/g, '_') + '#' + code.length + contentHash(code);
 }
 
 export class SourceService {
@@ -102,7 +117,7 @@ export class SourceService {
    *  返回安装成功的条目列表(部分成功不回滚:逐个装,失败进 errors)。
    *  jsdelivr 多镜像重试:实测真机原生 fetch 对部分 CDN 节点提前断连(HTTP 499),
    *  逐镜像尝试可绕过单节点故障。 */
-  async installFromUrl(url: string): Promise<{ installed: ScriptEntry[]; errors: string[] }> {
+  async installFromUrl(url: string): Promise<ZipInstallResult> {
     'background only';
     const bytes = await this.downloadWithRetry(url);
     // zip 魔数 PK\x03\x04
@@ -111,7 +126,7 @@ export class SourceService {
     }
     const text = utf8Decode(bytes);
     const entry = await this.install(text);
-    return { installed: [entry], errors: [] };
+    return { installed: [entry], errors: [], skipped: 0 };
   }
 
   /** 下载 + 镜像重试。jsdelivr 三镜像;非 jsdelivr URL 原样单次。 */
@@ -156,7 +171,7 @@ export class SourceService {
 
   /** 压缩包安装:解包,取全部 .js(按路径排序保证确定性),逐个走 install。
    *  实测 lx 社区 zip 结构:脚本多在子目录里,故按路径前缀分组不必要,直接平铺收 js。 */
-  async installFromZip(bytes: Uint8Array): Promise<{ installed: ScriptEntry[]; errors: string[] }> {
+  async installFromZip(bytes: Uint8Array): Promise<ZipInstallResult> {
     'background only';
     let files: Record<string, Uint8Array>;
     try {
@@ -171,18 +186,20 @@ export class SourceService {
 
     const installed: ScriptEntry[] = [];
     const errors: string[] = [];
+    let skipped = 0;
     for (const p of jsPaths) {
       const text = utf8Decode(files[p]);
       try {
         installed.push(await this.install(text));
       } catch (e) {
-        // 已安装的脚本跳过不算错
+        // 已存在(同名称+同内容)不算失败,计入 skipped
         const msg = e instanceof Error ? e.message : String(e);
-        if (!msg.includes('脚本已安装')) errors.push(`${p}: ${msg}`);
+        if (msg.includes('脚本已安装')) skipped += 1;
+        else errors.push(`${p}: ${msg}`);
       }
     }
-    if (!installed.length && errors.length) throw new Error(errors.join('; ').slice(0, 300));
-    return { installed, errors };
+    if (!installed.length && !skipped && errors.length) throw new Error(errors.join('; ').slice(0, 300));
+    return { installed, errors, skipped };
   }
 
   async setEnabled(id: string, enabled: boolean): Promise<void> {
