@@ -158,7 +158,7 @@ export class SourceService {
       } catch (e) {
         // 真机 PrimJS 无 URL 构造函数(实测 host 显示 undefined),手动截 host
         const host = u.replace(/^https?:\/\//, '').split('/')[0];
-        errors.push(`${host}: ${e instanceof Error ? e.message : String(e)}`);
+        errors.push(`${host}(len${u.length}): ${e instanceof Error ? e.message : String(e)}`);
       }
     }
     // 真机实测:Lynx 原生 HTTP 连不上目标(墙/DNS/SSL)时统一映射为 HTTP 499

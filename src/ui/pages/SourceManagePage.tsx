@@ -36,8 +36,12 @@ export function SourceManagePage({ safeTop, onOffsetChange }: SourceManagePagePr
 
   const handleInstallUrl = () => {
     'background only';
-    if (!urlDraft.trim()) return;
-    void installFromUrl(urlDraft.trim()).then((ok) => { if (ok) setUrlDraft(''); });
+    // 实测排查:x-input 粘贴可能带入不可见字符(零宽空格 U+200B/U+FEFF 等),
+    // trim() 不清除 → 原生 fetch 对畸形 URL 报 499。这里清除所有非可见 ASCII。
+    // eslint-disable-next-line no-control-regex
+    const cleaned = urlDraft.replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, '').trim();
+    if (!cleaned) return;
+    void installFromUrl(cleaned).then((ok) => { if (ok) setUrlDraft(''); });
   };
 
   const handleInput = (e: { detail: { value: string } }) => {
