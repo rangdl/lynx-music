@@ -47,6 +47,11 @@ dependencies {
     implementation("org.lynxsdk.lynx:lynx-jssdk:4.0.0")
     implementation("org.lynxsdk.lynx:primjs:4.0.0")
 
+    // http-service(裸 fetch 的后端 —— 音源取链/URL 导入必需,真机实测缺失报
+    // "Lynx Http Service not registered")+ OkHttp(其传输后端)。
+    implementation("org.lynxsdk.lynx:lynx-service-http:4.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
     // image-service(支撑 <image> 封面)+ Fresco(image-service 的后端,必需)。
     implementation("org.lynxsdk.lynx:lynx-service-image:4.0.0")
     implementation("com.facebook.fresco:fresco:2.3.0")

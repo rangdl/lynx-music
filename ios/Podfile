@@ -16,10 +16,10 @@ target 'LynxMusic' do
   pod 'LynxServiceAPI', '4.0.1'
   pod 'PrimJS', '4.0.0', :subspecs => ['quickjs', 'napi']
 
-  # 宿主服务:<image> 封面(SDWebImage 后端)+ 引擎日志。
-  # Http 故意缺席:SDK 版本走 URLSession.shared,拿不到 delegate;
-  # 我们的网络在 JS 层(platform/http),原生 fetch 不参与音源取链。
-  pod 'LynxService', '4.0.1', :subspecs => ['Image', 'Log']
+  # 宿主服务:<image> 封面(SDWebImage 后端)+ 引擎日志 + Http(裸 fetch 的
+  # 后端 —— 音源取链/URL 导入都走原生 fetch,缺它报 "Lynx Http Service
+  # not registered",2026-10-18 真机实测)。
+  pod 'LynxService', '4.0.1', :subspecs => ['Image', 'Log', 'Http']
 
   # LynxService/Image 的依赖(版本由 podspec 自行钉死)。
   pod 'SDWebImage', '5.15.5'
