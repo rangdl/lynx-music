@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <!-- viewport-fit=cover 让 iOS env(safe-area-inset-*) 非 0,页面自绘安全区(套用 songloft 方案) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lynx Music</title>
+  <!-- 自托管入口页(套用 songloft-player-lynx 的宿主底座方案):
+       官方 dev middleware 的 index.html 不留宿主脚本注入点,而 nativeModulesMap
+       必须在 <lynx-view> custom element 升级前就位。因此自建页面,用 web-core
+       的 client_prod 资产(client.js / client.css)。资产哈希随 web-core 版本变,
+       serve.mjs 会按目录实际内容重写下面的 preload 行,本文件哈希仅是模板。 -->
+  <link href="./web-core/static/css/client.css" rel="stylesheet">
+  <link rel="preload" as="fetch" href="./web-core/static/wasm/4c402c7981.module.wasm">
+  <link rel="preload" as="fetch" href="./web-core/static/wasm/72aaf7d0aa.module.wasm">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+    lynx-view { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <lynx-view id="app" url="./main.lynx.bundle"></lynx-view>
+
+  <!-- audio-host 必须在 web-core client 之前加载:nativeModulesMap 要在
+       <lynx-view> 升级时已就位(见 songloft web/index.html 同款顺序约束)。
+       defer 保证 audio-host.js → client.js 执行顺序。 -->
+  <script defer src="./audio-host.js"></script>
+  <!-- client_prod 用 import.meta,必须 type="module"(songloft 实测:经典 script 直接黑屏) -->
+  <script type="module" src="./web-core/static/js/client.js"></script>
+</body>
+</html>

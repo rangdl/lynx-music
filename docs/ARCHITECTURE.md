@@ -139,7 +139,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   → 失败:toast + 自动试下一音源/降音质
 ```
 
-- `platform/audio` 接口:`play/pause/seek/setRate/setVolume/事件(position、ended、error)`。Web 回退用 `<audio>`(仅 Web 环境存在,合法)。
+- `platform/audio` 接口:`play/pause/seek/setRate/setVolume/事件(position、ended、error)`。Web 与真机共用同一条 `NativeModules.LynxAudio` 路径(套用 songloft-player-lynx 方案):`web/audio-host.js` 在主线程持 `<audio>` 并经 `lynxView.nativeModulesMap` 注册,worker 侧经 ESM 工厂调用,事件经 `sendGlobalEvent`(数组参数)→ `GlobalEventEmitter` 回传。宿主底座 = `web/index.html` + `web/serve.mjs`(端口 3091);serve.mjs 给 web-core client.js 打 class-field 补丁(nativeModulesMap 升级时被构造器重置的官方 bug,songloft patch 同款)。**裸全局陷阱**:worker 里 `NativeModules` 是 wrapper 注入的函数参数,`globalThis.NativeModules` 为 undefined;且模块加载时探测过早(lynx-core 尚未赋值),`platform/audio.ts` 必须 typeof 裸标识符 + 惰性 resolve。
 - 进度条这类高频 UI:后台线程 state 每秒 1 次足够;若做拖动手势跟手,再上 `main-thread:` 事件 + `MainThread.Element.setStyleProperty`,不要默认用。
 
 ## 6. 主题与样式

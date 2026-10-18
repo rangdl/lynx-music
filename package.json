@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "build": "rspeedy build",
+    "build:web-host": "rspeedy build && node scripts/patch-web-core.mjs",
     "dev": "rspeedy dev",
     "preview": "rspeedy preview",
+    "serve:web": "node web/serve.mjs",
     "test": "rstest run"
   },
   "dependencies": {
