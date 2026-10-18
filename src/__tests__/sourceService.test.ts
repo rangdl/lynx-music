@@ -1,7 +1,7 @@
 /* SourceService 集成测试:真实脚本代码 + 假网络,验证 安装→注册表→取链 全链路。 */
 
 import { describe, expect, test, beforeEach } from '@rstest/core';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 // 隔离 localStorage 依赖:platform 的 web storage 在 rstest(jsdom)下可用,直接用
@@ -100,8 +100,12 @@ class SourceServiceWithNet extends SourceService {
 describe.sequential('SourceService 集成(真实念心脚本,离线 mock)', () => {
   beforeEach(async () => { await new SourceServiceWithNet((u, o, cb) => cb(null, null)).clearAll(); });
 
-  test('真实脚本可安装且解析出元数据', async () => {
-    const code = readFileSync('/data/workspace/lynx/test-fixtures/nianxin.js', 'utf8');
+  // fixture 是用户私有音源脚本(test-fixtures/ 已 gitignore),仓库环境无此文件时跳过。
+  const fixturePath = '/data/workspace/lynx/test-fixtures/nianxin.js';
+  const hasFixture = existsSync(fixturePath);
+
+  test.skipIf(!hasFixture)('真实脚本可安装且解析出元数据', async () => {
+    const code = readFileSync(fixturePath, 'utf8');
     // 念心 init:检查更新 URL 返回"已是最新",随后 send(inited) 由脚本自行构造
     const svc = new SourceServiceWithNet((url, _o, cb) => {
       setTimeout(() => cb(null, { statusCode: 200, headers: {}, body: { code: 200, data: { version: '0', update: { version: '0' } } } }), 5);
