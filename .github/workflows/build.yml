@@ -144,7 +144,7 @@ jobs:
       - name: Build unsigned device app
         working-directory: ios
         run: |
-          xcodebuild -project LynxMusic.xcodeproj -scheme LynxMusic \
+          xcodebuild -workspace LynxMusic.xcworkspace -scheme LynxMusic \
             -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' \
