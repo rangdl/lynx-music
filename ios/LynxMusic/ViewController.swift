@@ -41,7 +41,7 @@ class ViewController: UIViewController {
     let screenSize = view.window?.windowScene?.screen.bounds.size ?? view.bounds.size
     let provider = templateProvider
     let lynxView = LynxView { builder in
-      builder.config = Self.buildConfig()
+      builder.config = Self.buildConfig(provider: provider)
       builder.fetcher = provider
       builder.templateResourceFetcher = provider
       builder.screenSize = screenSize
@@ -56,23 +56,17 @@ class ViewController: UIViewController {
     self.lynxView = lynxView
 
     // LynxLoadMeta 把 globalProps 带进 load:首帧就拿到数据,无需异步 getter。
-    let meta = LynxLoadMeta.Builder()
-    meta.setUrl(Self.bundleURL)
-    meta.setGlobalProps(TemplateData/value([:]))
-    lynxView.loadTemplate(meta.build())
+    // API 形态照 songloft(Lynx 4.0.1):属性赋值 + LynxTemplateData(dictionary:)。
+    let meta = LynxLoadMeta()
+    meta.url = Self.bundleURL
+    meta.globalProps = LynxTemplateData(dictionary: [:])
+    lynxView.loadTemplate(meta)
   }
 
   /// 注册原生模块。LynxAudio 与 Web 侧 audio-host.js 同协议(见 platform/audio.ts)。
-  private static func buildConfig() -> LynxConfig {
-    let config = LynxConfig()
+  private static func buildConfig(provider: LynxMusicTemplateProvider) -> LynxConfig {
+    let config = LynxConfig(provider: provider)
     config.register(LynxAudioModule.self)
     return config
-  }
-}
-
-// TemplateData 无 value(_:) 便捷构造时用 map 变体;保持一个封装点便于 SDK 版本差异修补。
-private extension TemplateData {
-  static func value(_ map: [String: Any]) -> TemplateData {
-    TemplateData.fromMap(map)
   }
 }

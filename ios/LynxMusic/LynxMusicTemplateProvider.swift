@@ -26,7 +26,7 @@ class LynxMusicTemplateProvider: NSObject, LynxTemplateProvider,
         return
       }
       // 与 Bridging-Header 的内联函数保持一致:显式 ObjC 初始化器包 NSData。
-      callback(LynxTemplateResource(data), nil)
+      callback(LynxMusicTemplateResourceFromData(data), nil)
     }
   }
 
