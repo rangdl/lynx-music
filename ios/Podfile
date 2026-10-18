@@ -1,0 +1,30 @@
+source 'https://cdn.cocoapods.org/'
+
+# 部署下限 15.0(songloft 同款:Xcode 26 链接现代 Swift runtime,装 14 无收益)。
+platform :ios, '15.0'
+
+# 版本组合照 songloft pods.rb(2026-10 实测可用组合):
+# - Lynx 4.0.1(4.0.0 的 podspec 在 CocoaPods trunk CDN 缓存损坏,
+#   JSON::ParserError 解析即死,用最近可用的 4.0.1)
+# - LynxBase/LynxServiceAPI 必须同版本锁定:Lynx/Framework 对它们无版本约束,
+#   不锁会喜提 LynxBase nightly(不可复现的真机才炸的错配)
+# - PrimJS 4.0.0:Lynx 4.0.1 的 Framework subspec 钉死 quickjs = 4.0.0
+# - bundle 的 targetSdkVersion 是 3.2,4.x 引擎向后兼容
+target 'LynxMusic' do
+  pod 'Lynx', '4.0.1', :subspecs => ['Framework']
+  pod 'LynxBase', '4.0.1', :subspecs => ['Framework']
+  pod 'LynxServiceAPI', '4.0.1'
+  pod 'PrimJS', '4.0.0', :subspecs => ['quickjs', 'napi']
+
+  # 宿主服务:<image> 封面(SDWebImage 后端)+ 引擎日志。
+  # Http 故意缺席:SDK 版本走 URLSession.shared,拿不到 delegate;
+  # 我们的网络在 JS 层(platform/http),原生 fetch 不参与音源取链。
+  pod 'LynxService', '4.0.1', :subspecs => ['Image', 'Log']
+
+  # LynxService/Image 的依赖(版本由 podspec 自行钉死)。
+  pod 'SDWebImage', '5.15.5'
+  pod 'SDWebImageWebPCoder', '0.11.0'
+
+  # XElement 家族:SVG(图标)/Input/Overlay/Refresh 等元素的默认子规格。
+  pod 'XElement', '4.0.1'
+end

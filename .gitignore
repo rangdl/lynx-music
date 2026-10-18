@@ -2,3 +2,13 @@ node_modules/
 dist/
 *.log
 test-fixtures/
+
+# 平台宿主的内嵌 bundle(copy-bundle-* 产物,CI 构建时重新生成)
+android/app/src/main/assets/main.lynx.bundle
+ios/LynxMusic/main.lynx.bundle
+ios/Pods/
+ios/build/
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties

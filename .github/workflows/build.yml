@@ -1,8 +1,9 @@
-# 构建 Lynx 双端 bundle + Web 宿主底座,产物上传为 artifact。
-# 使用 build:web-host(而非 build):web 宿主页依赖给 web-core client.js 打
-# nativeModulesMap accessor 补丁(scripts/patch-web-core.mjs),rspeedy build 不会做这一步。
+# 构建全平台产物:JS bundle、Web 宿主、Android APK、iOS 未签名 IPA。
 #
-# 触发:push 到 main/master 或手动。产物:main.lynx.bundle / main.web.bundle / web/ 宿主文件。
+# - JS:build:web-host = rspeedy build + web-core class-field 补丁(见 scripts/patch-web-core.mjs)
+# - Android:ubuntu runner,debug 签名(免证书可直接侧载)
+# - iOS:macos runner,CODE_SIGNING_ALLOWED=NO → 未签名 ipa
+#   (侧载方式:TrollStore / Xcode 重签 / AltStore;不做 App Store 分发)
 
 name: build
 
@@ -11,8 +12,13 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  prepare:
+    name: JS validation and bundles
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check & unit tests
+      - name: Unit tests
         run: npm run test
 
       - name: Build (bundles + web-core patch)
@@ -37,11 +43,122 @@ jobs:
           grep -q '#nativeModulesMap;#napiModulesMap' \
             node_modules/@lynx-js/web-core/dist/client_prod/static/js/client.js
 
-      - name: Upload artifacts
+      - name: Share bundles with platform jobs
         uses: actions/upload-artifact@v4
         with:
-          name: lynx-app
-          path: |
-            dist/
-            web/
+          name: js-bundles
+          path: dist/
           if-no-files-found: error
+          retention-days: 7
+
+  web-host:
+    name: Web host package
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: js-bundles
+          path: dist/
+      - name: Assemble web host package
+        run: |
+          tar -czf lynx-music-web.tar.gz \
+            web/index.html web/audio-host.js web/lynx-audio-module.js web/serve.mjs \
+            dist/main.web.bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-web
+          path: lynx-music-web.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  android:
+    name: Android APK (debug-signed)
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: js-bundles
+          path: dist/
+      - run: node scripts/copy-bundle-android.mjs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-34 build-tools;34.0.0
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew --no-daemon :app:assembleRelease
+      - name: Collect APK
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk lynx-music-android.apk
+          ls -la lynx-music-android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: lynx-music-android.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  ios:
+    name: iOS IPA (unsigned)
+    needs: prepare
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: js-bundles
+          path: dist/
+      - run: node scripts/copy-bundle-ios.mjs
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Install CocoaPods (locked version)
+        run: gem install cocoapods -v 1.16.2 --no-document
+      - name: Install pods
+        working-directory: ios
+        run: pod _1.16.2_ install
+      - name: Build unsigned device app
+        working-directory: ios
+        run: |
+          xcodebuild -project LynxMusic.xcodeproj -scheme LynxMusic \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' \
+            CODE_SIGN_ENTITLEMENTS='' CODE_SIGN_STYLE=Manual build
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          APP=ios/build/DerivedData/Build/Products/Release-iphoneos/LynxMusic.app
+          test -d "$APP"
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry lynx-music-ios-nosign.ipa Payload
+          ls -la lynx-music-ios-nosign.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-ios
+          path: lynx-music-ios-nosign.ipa
+          if-no-files-found: error
+          retention-days: 7

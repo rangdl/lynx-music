@@ -1,0 +1,8 @@
+[versions]
+# AGP 8.5.0 + Gradle 8.7 + Kotlin 1.9.0:JDK 17 兼容的已验证组合(songloft 同款)。
+agp = "8.5.0"
+kotlin = "1.9.0"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
