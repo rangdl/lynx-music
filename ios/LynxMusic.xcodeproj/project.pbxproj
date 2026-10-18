@@ -29,7 +29,7 @@
 		AA000000000000000000001B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA000000000000000000001C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000000000000000000001D /* LynxMusic-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LynxMusic-Bridging-Header.h"; sourceTree = "<group>"; };
-		AA0000000000000000000021 /* Pods_LynxMusic.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods_LynxMusic.xcconfig; path = "Pods/Target Support Files/Pods-LynxMusic/Pods-LynxMusic.xcconfig"; sourceTree = "<group>"; };
+		BB0000000000000000000021 /* Pods_LynxMusic.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods_LynxMusic.xcconfig; path = "Pods/Target Support Files/Pods-LynxMusic/Pods-LynxMusic.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,10 +77,10 @@
 			path = LynxMusic;
 			sourceTree = "<group>";
 		};
-		AA0000000000000000000022 /* Pods */ = {
+		BB0000000000000000000022 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				AA0000000000000000000021 /* Pods_LynxMusic.xcconfig */,
+				BB0000000000000000000021 /* Pods_LynxMusic.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -212,7 +212,7 @@
 		};
 		AA000000000000000000000D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AA0000000000000000000021 /* Pods_LynxMusic.xcconfig */;
+			baseConfigurationReference = BB0000000000000000000021 /* Pods_LynxMusic.xcconfig */;
 			buildSettings = {
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
@@ -237,7 +237,7 @@
 		};
 		AA000000000000000000000E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AA0000000000000000000021 /* Pods_LynxMusic.xcconfig */;
+			baseConfigurationReference = BB0000000000000000000021 /* Pods_LynxMusic.xcconfig */;
 			buildSettings = {
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
