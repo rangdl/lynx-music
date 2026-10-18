@@ -29,7 +29,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        # lynx-ui 3.140 peer 要 @types/react@^18,与 @lynx-js/react 允许的 ^19 冲突;
+        # 本地即以 legacy-peer-deps 安装,CI 保持一致。
+        run: npm install --legacy-peer-deps
 
       - name: Unit tests
         run: npm run test
